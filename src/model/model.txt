@@ -1,0 +1,33 @@
+# General outline of puzlle files:
+# bitmap representing if element of file is present or not
+    # b_0: number of vertices                       | required for solver, visualisation
+    # b_1: number of edges                          | required for solver, visualisation
+    # b_2: list of edges                            | required for solver, visualisation
+    # b_3: number of faces                          | required for solver, visualisation
+    # b_4: list of faces                            | required for solver, visualisation
+    # b_5: edge bit - if 1 then puzzle is solved    | output of solver
+    # b_6: list of coordinates for vertices         | required for visualisation
+    # b_7: type of grid                             | optional for solver
+b_7 b_6 b_5 b_4 b_3 b_2 b_1 b_0
+# number of vertices in puzzle - single number
+V
+# number od edges - single number
+E
+# ordered list of edges - two numbers: indices of vertices, bit: edge is chosen in solution or not
+v_1 v_2 b_1
+...
+...
+v_i v_j b_n
+# number of faces - single number
+F
+# list of faces - single number: clue from puzzle (number of edes included in solution), sets of numbers representing edges around the face
+f_1 e_{1,1} ... e_{j_1,1}
+f_2 e_{1,2} ... e_{j_2,2}
+...
+f_j e_{1,i} ... e_{j_i,i}
+# ordered list of coordinates for vertices - two numbers: x, y
+x_1 y_1
+...
+x_V, y_V
+# enumerated type of grid
+G
