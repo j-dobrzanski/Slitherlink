@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <sstream>
 
 #define V_PRESENT               (0b1)
 #define E_PRESENT               (0b1 << 1)
@@ -45,10 +46,11 @@ static inline parserState getNextState(parserState current_state, std::size_t pa
         case PARSER_STATE_READ_LIST_OF_EDGES_W_SOLVED:
             return PARSER_STATE_READ_F;
         case PARSER_STATE_READ_F:
-            return (params_bitmap & LIST_OF_FACES_PRESENT) ? PARSER_STATE_READ_LIST_OF_FACES :
-                    ((params_bitmap & TYPE_OF_GRID_PRESENT) ? PARSER_STATE_READ_GRID_TYPE : PARSER_STATE_FINISH);
+            return PARSER_STATE_READ_LIST_OF_FACES;
         case PARSER_STATE_READ_LIST_OF_FACES:
             return (params_bitmap & TYPE_OF_GRID_PRESENT) ? PARSER_STATE_READ_GRID_TYPE : PARSER_STATE_FINISH;
+        default:
+            return PARSER_STATE_ERROR;
     }
     return PARSER_STATE_ERROR;
 }
@@ -58,7 +60,71 @@ static inline bool isComment(const std::string& str){
     while (i < str.length() && std::isspace(str[i])) {
         ++i;
     }
-    return i < str.length() && str[i] != '#';
+    return i < str.length() && str[i] == '#';
+}
+
+static inline int readEdges(std::ifstream* file, std::size_t no_of_edges, std::vector<edge>* edges){
+    std::size_t i = 0;
+    std::string line = "";
+    while(i < no_of_edges){
+        std::getline(*file, line);
+        if(isComment(line)){
+            ERROR("comment");
+            continue;
+        }
+        std::istringstream iss(line);
+        std::string word1 = "";
+        std::string word2 = "";
+        if(!(iss >> word1)){
+            ERROR("Can't read first vertice of edge no", i);
+            return 1;
+        }
+        if(!(iss >> word2)){
+            ERROR("Can't read second vertice of edge no", i);
+            return 1;
+        }
+        edges->push_back(edge(std::stoi(word1), std::stoi(word2)));
+        i++;
+    }
+    return 0;
+}
+
+static inline int readFaces(std::ifstream* file, std::size_t no_of_faces, std::vector<face>* faces){
+    std::size_t i = 0;
+    std::string line = "";
+    while(i < no_of_faces){
+        std::getline(*file, line);
+        if(isComment(line)){
+            continue;
+        }
+        std::istringstream iss(line);
+        std::string word1 = "";
+        std::string word2 = "";
+        std::vector<std::size_t> edges;
+        if(!(iss >> word1)){
+            ERROR("Can't read clue of face no", i);
+            return 1;
+        }
+        while(iss >> word2){
+            edges.push_back(std::stoi(word2));
+        }
+        faces->push_back(face(std::stoi(word1), edges));
+        i++;
+    }
+    return 0;
+}
+
+static inline int readCoords(std::ifstream* file, std::size_t no_of_vertices){
+    std::size_t i = 0;
+    std::string line = "";
+    while(i < no_of_vertices){
+        std::getline(*file, line);
+        if(isComment(line)){
+            continue;
+        }
+        i++;
+    }
+    return 0;
 }
 
 SlitherlinkGeneric::SlitherlinkGeneric(std::string file_name){
@@ -67,15 +133,48 @@ SlitherlinkGeneric::SlitherlinkGeneric(std::string file_name){
         ERROR("Can't open file of name: ", file_name);
     }
 
-    std::size_t V = 0;
-    std::size_t E = 0;
-    std::size_t F = 0;
-    std::vector<edge> edges;
-
     std::string line = "";
-    while(std::getline(file, line)){
-        
+    parserState state = PARSER_STATE_DEFAULT;
+    std::size_t params_bitmap = 0;
+    while(state != PARSER_STATE_FINISH && state != PARSER_STATE_ERROR){
+        switch(state){
+            case PARSER_STATE_DEFAULT:
+                std::getline(file, line);
+                params_bitmap = std::stoi(line);
+                if((params_bitmap & SOLVER_PARAMS_REQUIRED) ^ SOLVER_PARAMS_REQUIRED){
+                    state = PARSER_STATE_ERROR;
+                }
+                state = PARSER_STATE_READ_V;
+                break;
+            case PARSER_STATE_READ_V:
+                std::getline(file, line);
+                V = std::stoi(line);
+                state = PARSER_STATE_READ_E;
+                break;
+            case PARSER_STATE_READ_E:
+                std::getline(file, line);
+                E = std::stoi(line);
+                state = (params_bitmap & SOLVED_EDGE_BIT_PRESENT) ?
+                    PARSER_STATE_READ_LIST_OF_EDGES_W_SOLVED : PARSER_STATE_READ_LIST_OF_EDGES;
+                break;
+            case PARSER_STATE_READ_LIST_OF_EDGES_W_SOLVED:
+            case PARSER_STATE_READ_LIST_OF_EDGES:
+                readEdges(&file, E, &edges);
+                state = PARSER_STATE_READ_F;
+                break;
+            case PARSER_STATE_READ_F:
+                std::getline(file, line);
+                F = std::stoi(line);
+                state = PARSER_STATE_READ_LIST_OF_FACES;
+                break;
+            case PARSER_STATE_READ_LIST_OF_FACES:
+                readFaces(&file, F, &faces);
+                state = PARSER_STATE_FINISH;
+                break;
+            default:
+                state = PARSER_STATE_ERROR;
+        }
     }
-
+    
     file.close();
 }

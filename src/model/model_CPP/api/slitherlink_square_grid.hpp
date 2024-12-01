@@ -22,7 +22,7 @@ typedef std::pair<std::size_t, std::size_t> edge;
  */
 typedef std::pair<std::size_t, std::array<std::size_t, FACE_SIZE>> face;
 
-class SlitherlinkSquareGrid : SlitherlinkTemplate<edge, face> {
+class SlitherlinkSquareGrid : SlitherlinkTemplate<face> {
     
 };
 

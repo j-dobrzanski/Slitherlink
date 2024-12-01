@@ -8,33 +8,50 @@
 #define INVALID_INDEX UINTMAX_MAX
 
 /**
- * Template for Slitherlink puzzle representation
- *  - T_edge: type for edge
+ * Edge of puzzle represented by pair of vertices at both ends of edge.
+ * Vertices should be ordered ascending.
  */
-template<typename T_edge, typename T_face>
+typedef std::pair<std::size_t, std::size_t> edge;
+
+/**
+ * Template for Slitherlink puzzle representation
+ *  - T_face: type for face
+ */
+template<typename T_face>
 class SlitherlinkTemplate {
-    private:
+    protected:
         /* Number of vertices in puzzle */
         std::size_t V;
         /* Number of edges in puzzle */
         std::size_t E;
         /* List of edges - pairs of vertices */
-        std::vector<T_edge> edges;
+        std::vector<edge> edges;
         /* Number of faces in puzzle */
         std::size_t F;
         /* List of faces */
         std::vector<T_face> faces;
 
     public:
-        SlitherlinkTemplate();
+        SlitherlinkTemplate(){
+            V = 0;
+            E = 0;
+            F = 0;
+            edges = {edge(INVALID_INDEX,INVALID_INDEX)};
+            faces = {T_face()};
+        }
         /**
          * Construct Slitherlink puzzle from a set of parameters
          */
         SlitherlinkTemplate(std::size_t V,
-                    std::size_t E,
-                    std::vector<T_edge> edges,
-                    std::size_t F,
-                    std::vector<T_face> faces);
+                            std::size_t E,
+                            std::vector<edge> edges,
+                            std::size_t F,
+                            std::vector<T_face> faces)
+            : V{ V },
+            E{ E },
+            edges{ edges },
+            F{ F },
+            faces{ faces }{}
 
         /* Get number of vertices in puzzle */
         std::size_t getV() const {
@@ -50,15 +67,15 @@ class SlitherlinkTemplate {
          * Get a copy of edges vector
          *  (May be inefficient!)
          */
-        std::vector<T_edge> getEdges() const {
+        std::vector<edge> getEdges() const {
             return std::vector<edge>(edges);
         };
 
         /**
          * Get an edge by an index
-         * Returns (INVALID_INDEX,INVALID_INDEX) if index out of edge list
+         * Returns edge(INVALID_INDEX,INVALID_INDEX) if index out of edge list
          */
-        T_edge getEdge(std::size_t index) const {
+        edge getEdge(std::size_t index) const {
             if(index >= E){
                 return edge(INVALID_INDEX,INVALID_INDEX);
             }
@@ -75,16 +92,16 @@ class SlitherlinkTemplate {
          *  (May be inefficient!) 
          */
         std::vector<T_face> getFaces() const {
-            return std::vector<face>(faces);
+            return std::vector<T_face>(faces);
         };
 
         /**
          * Get a face by an index
-         * Returns (INVALID_INDEX,{}) if index out of edge list
+         * Returns T_face() if index out of edge list
          */
         T_face getFace(std::size_t index) const {
             if(index >= F){
-                return face(INVALID_INDEX, {});
+                return T_face();
             }
             return faces[index];
         }
