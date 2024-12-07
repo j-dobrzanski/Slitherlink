@@ -19,6 +19,10 @@ class SlitherlinkGeneric : SlitherlinkTemplate<face> {
          */
         SlitherlinkGeneric(std::string file_name);
 
+        void printPuzzle(std::ofstream* ofstream);
+
+        void savePuzzle(std::string file_name);
+
 };
 
 #endif

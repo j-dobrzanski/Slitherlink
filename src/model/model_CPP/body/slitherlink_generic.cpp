@@ -4,6 +4,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <bitset>
 
 #define V_PRESENT               (0b1)
 #define E_PRESENT               (0b1 << 1)
@@ -175,6 +176,33 @@ SlitherlinkGeneric::SlitherlinkGeneric(std::string file_name){
                 state = PARSER_STATE_ERROR;
         }
     }
-    
+    file.close();
+}
+
+void SlitherlinkGeneric::printPuzzle(std::ofstream* ofstream){
+    std::size_t params_bitmap = (V_PRESENT | E_PRESENT | LIST_OF_EDGES_PRESENT |
+        F_PRESENT | LIST_OF_FACES_PRESENT); // TODO: add gridType
+    *ofstream << std::bitset<16>(params_bitmap) << std::endl;
+    *ofstream << V << std::endl;
+    *ofstream << E << std::endl;
+    for(std::size_t i = 0; i < E; i++){
+        *ofstream << edges[i].first << " " << edges[i].second << std::endl;
+    }
+    *ofstream << F << std::endl;
+    for(std::size_t i = 0; i < F; i++){
+        *ofstream << faces[i].first;
+        for(std::size_t j = 0; j < faces[i].second.size(); j++){
+           *ofstream << " " << faces[i].second[j];
+        }
+        *ofstream << std::endl;
+    }
+}
+
+void SlitherlinkGeneric::savePuzzle(std::string file_name){
+    std::ofstream file(file_name);
+    if (!file) {
+        ERROR("Can't open file of name: ", file_name);
+    }
+    printPuzzle(&file);
     file.close();
 }

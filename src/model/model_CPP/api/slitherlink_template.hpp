@@ -36,8 +36,8 @@ class SlitherlinkTemplate {
             V = 0;
             E = 0;
             F = 0;
-            edges = {edge(INVALID_INDEX,INVALID_INDEX)};
-            faces = {T_face()};
+            edges = {};
+            faces = {};
         }
         /**
          * Construct Slitherlink puzzle from a set of parameters

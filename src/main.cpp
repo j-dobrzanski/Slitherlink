@@ -3,4 +3,5 @@
 
 int main(){
     SlitherlinkGeneric puzzle = SlitherlinkGeneric("test.txt");
+    puzzle.savePuzzle("test_output.txt");
 }
