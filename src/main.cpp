@@ -1,7 +1,6 @@
-#include "model/model_CPP/api/slitherlink_generic.hpp"
-
+#include "model/model_CPP/api/slitherlink.hpp"
 
 int main(){
-    SlitherlinkGeneric puzzle = SlitherlinkGeneric("test.txt");
+    Slitherlink puzzle = Slitherlink("test.txt");
     puzzle.savePuzzle("test_output.txt");
 }
