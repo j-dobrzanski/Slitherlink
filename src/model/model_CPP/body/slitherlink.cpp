@@ -71,85 +71,85 @@ static int readDataFromFile(std::string file_name, Slitherlink* slitherlink){
     return 0;
 }
 
-static int evaluateReferences(Slitherlink* slitherlink){
+int Slitherlink::evaluateReferences(){
     LOG("Evaluating references");
     LOG("Vertex references");
     // Vertex references
-    for (slitherlink_vertex* vertex : slitherlink->vertices) {
+    for (slitherlink_vertex* vertex : vertices) {
         LOG("Vertex ", vertex->id);
         for (std::ptrdiff_t edge_id : vertex->edge_ids) {
             LOG("Edge ", edge_id);
-            if (edge_id >= slitherlink->no_of_edges) {
+            if (edge_id >= no_of_edges) {
                 ERROR("Vertex ", vertex->id, " references non-existing edge ", edge_id);
                 return -1;
             }
-            vertex->edge_refs.push_back(slitherlink->edges[edge_id]);
+            vertex->edge_refs.push_back(edges[edge_id]);
         }
     }
     LOG("Edge references");
     // Edge references
-    for (slitherlink_edge* edge : slitherlink->edges) {
+    for (slitherlink_edge* edge : edges) {
         std::ptrdiff_t vertex_id = edge->vertices[0];
-        if (vertex_id >= slitherlink->no_of_vertices) {
+        if (vertex_id >= no_of_vertices) {
             ERROR("Edge ", edge->id, " references non-existing vertex ", vertex_id);
             return -1;
         }
-        edge->vertex_refs[0] = slitherlink->vertices[vertex_id];
+        edge->vertex_refs[0] = vertices[vertex_id];
         vertex_id = edge->vertices[1];
-        if (vertex_id >= slitherlink->no_of_vertices) {
+        if (vertex_id >= no_of_vertices) {
             ERROR("Edge ", edge->id, " references non-existing vertex ", vertex_id);
             return -1;
         }
-        edge->vertex_refs[1] = slitherlink->vertices[vertex_id];
+        edge->vertex_refs[1] = vertices[vertex_id];
 
         std::ptrdiff_t face_id = edge->face_ids[0];
-        if (face_id >= slitherlink->no_of_faces) {
+        if (face_id >= no_of_faces) {
             ERROR("Edge ", edge->id, " references non-existing face ", face_id);
             return -1;
         }
         else if (face_id == OUTER_FACE) {
-            edge->face_refs[0] = slitherlink->faces[slitherlink->no_of_faces - 1];
+            edge->face_refs[0] = faces[no_of_faces - 1];
         }
         else {
-            edge->face_refs[0] = slitherlink->faces[face_id];
+            edge->face_refs[0] = faces[face_id];
         }
         face_id = edge->face_ids[1];
-        if (face_id >= slitherlink->no_of_faces) {
+        if (face_id >= no_of_faces) {
             ERROR("Edge ", edge->id, " references non-existing face ", face_id);
             return -1;
         }
         else if (face_id == OUTER_FACE) {
-            edge->face_refs[1] = slitherlink->faces[slitherlink->no_of_faces - 1];
+            edge->face_refs[1] = faces[no_of_faces - 1];
         }
         else {
-            edge->face_refs[1] = slitherlink->faces[face_id];
+            edge->face_refs[1] = faces[face_id];
         }
     }
     LOG("Face references");
     // Face references
-    for (slitherlink_face* face : slitherlink->faces) {
+    for (slitherlink_face* face : faces) {
         if (face->id == OUTER_FACE) {
             continue;
         }
         for (std::ptrdiff_t edge_id : face->edge_ids) {
-            if (edge_id >= slitherlink->no_of_edges) {
+            if (edge_id >= no_of_edges) {
                 ERROR("Face ", face->id, " references non-existing edge ", edge_id);
                 return -1;
             }
-            face->edge_refs.push_back(slitherlink->edges[edge_id]);
-            std::ptrdiff_t face_id = slitherlink->edges[edge_id]->face_ids[0] == face->id ?
-                                        slitherlink->edges[edge_id]->face_ids[1] :
-                                        slitherlink->edges[edge_id]->face_ids[0];
+            face->edge_refs.push_back(edges[edge_id]);
+            std::ptrdiff_t face_id = edges[edge_id]->face_ids[0] == face->id ?
+                                        edges[edge_id]->face_ids[1] :
+                                        edges[edge_id]->face_ids[0];
             face->face_ids.push_back(face_id);
             if (face_id == OUTER_FACE) {
-                face->face_refs.push_back(slitherlink->faces[slitherlink->no_of_faces - 1]);
+                face->face_refs.push_back(faces[no_of_faces - 1]);
             }
-            else if (face_id >= slitherlink->no_of_faces) {
+            else if (face_id >= no_of_faces) {
                 ERROR("Face ", face->id, " references non-existing face ", face_id);
                 return -1;
             }
             else {
-                face->face_refs.push_back(slitherlink->faces[face_id]);
+                face->face_refs.push_back(faces[face_id]);
             }
         }
     }
@@ -158,7 +158,7 @@ static int evaluateReferences(Slitherlink* slitherlink){
 
 Slitherlink::Slitherlink(std::string file_name){
     assert(readDataFromFile(file_name, this) == 0);
-    assert(evaluateReferences(this) == 0);
+    assert(this->evaluateReferences() == 0);
 }
 
 Slitherlink::Slitherlink(std::size_t params_bitmap,
@@ -175,7 +175,7 @@ Slitherlink::Slitherlink(std::size_t params_bitmap,
     this->vertices = vertices;
     this->edges = edges;
     this->faces = faces;
-    assert(evaluateReferences(this) == 0);
+    assert(this->evaluateReferences() == 0);
 }
 
 Slitherlink::~Slitherlink(){

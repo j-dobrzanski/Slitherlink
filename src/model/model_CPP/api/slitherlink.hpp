@@ -31,12 +31,22 @@ class Slitherlink {
                     std::vector<slitherlink_vertex*> vertices,
                     std::vector<slitherlink_edge*> edges,
                     std::vector<slitherlink_face*> faces);
+        
+        /**
+         * Construct blank Slitherlink puzzle of given size
+         * @param size size of the puzzle
+         * @note size is the number of layers in the puzzle
+         * @note size = 1 is the smallest puzzle, which is a hexagon
+         */
+        Slitherlink(std::ptrdiff_t size);
 
         ~Slitherlink();
 
         void printPuzzle(std::ofstream* ofstream);
 
         void savePuzzle(std::string file_name);
+
+        int evaluateReferences();
 };
 
 #endif // SLITHERLINK_H

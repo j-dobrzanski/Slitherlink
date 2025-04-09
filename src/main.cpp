@@ -4,7 +4,7 @@
 int main(){
     // Slitherlink puzzle = Slitherlink("test.txt");
     // puzzle.savePuzzle("test_output.txt");
-    Slitherlink* puzzle = generatePuzzleSimple(5);
+    Slitherlink* puzzle = new Slitherlink(5);
     puzzle->savePuzzle("generated_1.txt");
     delete puzzle;
 }
