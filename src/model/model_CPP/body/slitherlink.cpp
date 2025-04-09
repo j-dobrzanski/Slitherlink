@@ -107,27 +107,50 @@ static int evaluateReferences(Slitherlink* slitherlink){
             ERROR("Edge ", edge->id, " references non-existing face ", face_id);
             return -1;
         }
-        edge->face_refs[0] = slitherlink->faces[face_id];
+        else if (face_id == OUTER_FACE) {
+            edge->face_refs[0] = slitherlink->faces[slitherlink->no_of_faces - 1];
+        }
+        else {
+            edge->face_refs[0] = slitherlink->faces[face_id];
+        }
         face_id = edge->face_ids[1];
         if (face_id >= slitherlink->no_of_faces) {
             ERROR("Edge ", edge->id, " references non-existing face ", face_id);
             return -1;
         }
-        edge->face_refs[1] = slitherlink->faces[face_id];
+        else if (face_id == OUTER_FACE) {
+            edge->face_refs[1] = slitherlink->faces[slitherlink->no_of_faces - 1];
+        }
+        else {
+            edge->face_refs[1] = slitherlink->faces[face_id];
+        }
     }
     LOG("Face references");
     // Face references
     for (slitherlink_face* face : slitherlink->faces) {
+        if (face->id == OUTER_FACE) {
+            continue;
+        }
         for (std::ptrdiff_t edge_id : face->edge_ids) {
             if (edge_id >= slitherlink->no_of_edges) {
                 ERROR("Face ", face->id, " references non-existing edge ", edge_id);
                 return -1;
             }
             face->edge_refs.push_back(slitherlink->edges[edge_id]);
-            face->face_ids.push_back(slitherlink->edges[edge_id]->face_ids[0] == face->id ?
+            std::ptrdiff_t face_id = slitherlink->edges[edge_id]->face_ids[0] == face->id ?
                                         slitherlink->edges[edge_id]->face_ids[1] :
-                                        slitherlink->edges[edge_id]->face_ids[0]);
-            face->face_refs.push_back(slitherlink->faces[face->face_ids.back()]);
+                                        slitherlink->edges[edge_id]->face_ids[0];
+            face->face_ids.push_back(face_id);
+            if (face_id == OUTER_FACE) {
+                face->face_refs.push_back(slitherlink->faces[slitherlink->no_of_faces - 1]);
+            }
+            else if (face_id >= slitherlink->no_of_faces) {
+                ERROR("Face ", face->id, " references non-existing face ", face_id);
+                return -1;
+            }
+            else {
+                face->face_refs.push_back(slitherlink->faces[face_id]);
+            }
         }
     }
     return 0;
@@ -135,6 +158,23 @@ static int evaluateReferences(Slitherlink* slitherlink){
 
 Slitherlink::Slitherlink(std::string file_name){
     assert(readDataFromFile(file_name, this) == 0);
+    assert(evaluateReferences(this) == 0);
+}
+
+Slitherlink::Slitherlink(std::size_t params_bitmap,
+                         std::ptrdiff_t no_of_vertices,
+                         std::ptrdiff_t no_of_edges,
+                         std::ptrdiff_t no_of_faces,
+                         std::vector<slitherlink_vertex*> vertices,
+                         std::vector<slitherlink_edge*> edges,
+                         std::vector<slitherlink_face*> faces){
+    this->params_bitmap = params_bitmap;
+    this->no_of_vertices = no_of_vertices;
+    this->no_of_edges = no_of_edges;
+    this->no_of_faces = no_of_faces;
+    this->vertices = vertices;
+    this->edges = edges;
+    this->faces = faces;
     assert(evaluateReferences(this) == 0);
 }
 
@@ -158,7 +198,7 @@ void Slitherlink::printPuzzle(std::ofstream* ofstream){
     *ofstream << "# No of edges: " << std::endl;
     *ofstream << no_of_edges << std::endl;
     *ofstream << "# No of faces: " << std::endl;
-    *ofstream << no_of_faces << std::endl;
+    *ofstream << no_of_faces - 1 << std::endl;
     *ofstream << "# Vertices: " << std::endl;
     for (slitherlink_vertex* vertex : vertices) {
         *ofstream << vertex->id << " ";
@@ -173,23 +213,21 @@ void Slitherlink::printPuzzle(std::ofstream* ofstream){
         *ofstream << edge->id << " ";
         *ofstream << edge->vertices[0] << " " << edge->vertices[1] << " ";
         *ofstream << edge->face_ids[0] << " " << edge->face_ids[1];
-        if(this->params_bitmap & SOLVED_EDGE_BIT_PRESENT){
-            *ofstream << " " << edge->solution;
-        }
+        *ofstream << " " << edge->solution;
         *ofstream << std::endl;
     }
-    *ofstream << "# Faces: " << std::endl;
+    *ofstream << "# Faces: ";
     for (slitherlink_face* face : faces) {
+        *ofstream << std::endl;
         if (face->id == OUTER_FACE) {
             continue;
         }
         *ofstream << face->id << " ";
         *ofstream << face->value << " ";
-        *ofstream << face->no_of_edges << " ";
+        *ofstream << face->no_of_edges;
         for (std::size_t edge_id : face->edge_ids) {
-            *ofstream << edge_id << " ";
+            *ofstream << " " << edge_id;
         }
-        *ofstream << std::endl;
     }
 }
 

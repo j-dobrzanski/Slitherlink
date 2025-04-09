@@ -125,7 +125,7 @@ parserState readEdges(std::ifstream* file, std::ptrdiff_t no_of_edges, std::vect
         }
         std::ptrdiff_t face_2_id = std::stoi(word);
         slitherlink_edge* edge = new slitherlink_edge{
-            .id = i, 
+            .id = i,
             .vertices = {vertex_1_id, vertex_2_id},
             .face_ids = {face_1_id, face_2_id},
             .vertex_refs = {nullptr, nullptr},
@@ -170,8 +170,8 @@ parserState readFaces(std::ifstream* file, std::ptrdiff_t no_of_faces, std::vect
             .value = value,
             .no_of_edges = no_of_edges,
             .edge_ids = {},
-            .edge_refs = {},
             .face_ids = {},
+            .edge_refs = {},
             .face_refs = {}
         };
         while(edge_counter < no_of_edges){
@@ -191,8 +191,8 @@ parserState readFaces(std::ifstream* file, std::ptrdiff_t no_of_faces, std::vect
         .value = 0,
         .no_of_edges = 0,
         .edge_ids = {},
-        .edge_refs = {},
         .face_ids = {},
+        .edge_refs = {},
         .face_refs = {}
     };
     faces->push_back(outer_face);
