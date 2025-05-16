@@ -1,11 +1,14 @@
 from matplotlib import pyplot as plt
+import sys
 import math
 
 
 LIST_OF_COORDS_PRESENT = (1 << 7)
 SHOW_IDS = 0
+SHOW_EDGES = 1
 SCALE = 5
 FONT_SIZE = 5
+FONT_SIZE_LARGE = 10
 
 def getLine(file):
     line = file.readline().strip()
@@ -94,7 +97,7 @@ def readPuzzle(file_name: str):
             Slitherlink["vertices"][i]["y"] *= SCALE
     return Slitherlink 
 
-def plotPuzzle(Slitherlink: dict):
+def plotPuzzle(Slitherlink: dict, file_name: str = "test.png"):
     """
     Plots a Slitherlink puzzle.
 
@@ -105,27 +108,35 @@ def plotPuzzle(Slitherlink: dict):
     for edge in Slitherlink["edges"]:
         vertex_1 = Slitherlink["vertices"][edge["vertex_id_1"]]
         vertex_2 = Slitherlink["vertices"][edge["vertex_id_2"]]
-        if edge["solution"] == 1:
+        if SHOW_EDGES and edge["solution"] == 0:
             style = "-"
             col = "green"
-        else:
+        elif SHOW_EDGES and edge["solution"] == 2:
             style = ":"
             col = "grey"
-        ax.plot([vertex_1["x"], vertex_2["x"]], [vertex_1["y"], vertex_2["y"]], style, color=col)
+        else:
+            style = ""
+            col = "red"
+        if style:
+            ax.plot([vertex_1["x"], vertex_2["x"]], [vertex_1["y"], vertex_2["y"]], style, color=col)
         if SHOW_IDS:
             ax.text((vertex_1["x"] + vertex_2["x"]) / 2, (vertex_1["y"] + vertex_2["y"]) / 2, edge["id"], fontsize=FONT_SIZE, color="blue")
     for vertex in Slitherlink["vertices"]:
         ax.plot(vertex["x"], vertex["y"], "o", color="black", ms=2)
         if SHOW_IDS:
             ax.text(vertex["x"], vertex["y"], vertex["id"], fontsize=FONT_SIZE)
-    if SHOW_IDS:
-        for face in Slitherlink["faces"]:
-            if face["value"] != -1:
-                x_vec = [(Slitherlink["vertices"][Slitherlink["edges"][edge_id]["vertex_id_1"]]["x"] + Slitherlink["vertices"][Slitherlink["edges"][edge_id]["vertex_id_2"]]["x"])/2 for edge_id in face["edge_ids"]]
-                y_vec = [(Slitherlink["vertices"][Slitherlink["edges"][edge_id]["vertex_id_1"]]["y"] + Slitherlink["vertices"][Slitherlink["edges"][edge_id]["vertex_id_2"]]["y"])/2 for edge_id in face["edge_ids"]]
-                ax.text(sum(x_vec)/6, sum(y_vec)/6, face["id"], fontsize=FONT_SIZE, color="red")
+    for face in Slitherlink["faces"]:
+        x_vec = [(Slitherlink["vertices"][Slitherlink["edges"][edge_id]["vertex_id_1"]]["x"] + Slitherlink["vertices"][Slitherlink["edges"][edge_id]["vertex_id_2"]]["x"])/2 for edge_id in face["edge_ids"]]
+        y_vec = [(Slitherlink["vertices"][Slitherlink["edges"][edge_id]["vertex_id_1"]]["y"] + Slitherlink["vertices"][Slitherlink["edges"][edge_id]["vertex_id_2"]]["y"])/2 for edge_id in face["edge_ids"]]
+        if SHOW_IDS:
+            ax.text(sum(x_vec)/6, sum(y_vec)/6, face["id"], fontsize=FONT_SIZE, color="red")
+        else:
+            ax.text(sum(x_vec)/6, sum(y_vec)/6, face["value"], fontsize=FONT_SIZE_LARGE, color="red")
+            
     ax.set_aspect("equal")
     plt.axis("off")
-    plt.savefig("test.png", dpi=1200)
+    plt.savefig(file_name, dpi=1200)
 
-plotPuzzle(readPuzzle("generated_1.txt"))
+
+if __name__ == "__main__":
+    plotPuzzle(readPuzzle(sys.argv[1]), sys.argv[2])

@@ -5,7 +5,8 @@
 #include <cassert>
 #include <bitset>
 
-static int readDataFromFile(std::string file_name, Slitherlink* slitherlink){
+static int readDataFromFile(std::string file_name,
+                            Slitherlink* slitherlink){
     LOG("Reading data from file: ", file_name);
     std::ifstream file(file_name);
     if (!file) {
@@ -16,7 +17,7 @@ static int readDataFromFile(std::string file_name, Slitherlink* slitherlink){
     parserState state = PARSER_STATE_DEFAULT;
     std::size_t params_bitmap = 0;
     while(state != PARSER_STATE_FINISH && state != PARSER_STATE_ERROR){
-        LOG("Current state: ", state);
+        LOG_DEBUG("Current state: ", state);
         switch(state){
             case PARSER_STATE_DEFAULT:
                 parserGetLine(&file, &line);
@@ -72,13 +73,14 @@ static int readDataFromFile(std::string file_name, Slitherlink* slitherlink){
 }
 
 int Slitherlink::evaluateReferences(){
-    LOG("Evaluating references");
-    LOG("Vertex references");
+    LOG_DEBUG("Evaluating references");
+    LOG_DEBUG("Vertex references");
     // Vertex references
     for (slitherlink_vertex* vertex : vertices) {
-        LOG("Vertex ", vertex->id);
+        LOG_DEBUG("Vertex ", vertex->id);
+        vertex->edge_refs.clear();
         for (std::ptrdiff_t edge_id : vertex->edge_ids) {
-            LOG("Edge ", edge_id);
+            LOG_DEBUG("Edge ", edge_id);
             if (edge_id >= no_of_edges) {
                 ERROR("Vertex ", vertex->id, " references non-existing edge ", edge_id);
                 return -1;
@@ -86,7 +88,7 @@ int Slitherlink::evaluateReferences(){
             vertex->edge_refs.push_back(edges[edge_id]);
         }
     }
-    LOG("Edge references");
+    LOG_DEBUG("Edge references");
     // Edge references
     for (slitherlink_edge* edge : edges) {
         std::ptrdiff_t vertex_id = edge->vertices[0];
@@ -125,12 +127,14 @@ int Slitherlink::evaluateReferences(){
             edge->face_refs[1] = faces[face_id];
         }
     }
-    LOG("Face references");
+    LOG_DEBUG("Face references");
     // Face references
     for (slitherlink_face* face : faces) {
         if (face->id == OUTER_FACE) {
             continue;
         }
+        face->edge_refs.clear();
+        face->face_refs.clear();
         for (std::ptrdiff_t edge_id : face->edge_ids) {
             if (edge_id >= no_of_edges) {
                 ERROR("Face ", face->id, " references non-existing edge ", edge_id);
@@ -190,6 +194,29 @@ Slitherlink::~Slitherlink(){
     }
 }
 
+Slitherlink* Slitherlink::copy(){
+    std::vector<slitherlink_vertex*> vertices_copy = std::vector<slitherlink_vertex*>();
+    std::vector<slitherlink_edge*> edges_copy = std::vector<slitherlink_edge*>();
+    std::vector<slitherlink_face*> faces_copy = std::vector<slitherlink_face*>();
+
+    for (slitherlink_vertex* vertex : vertices) {
+        vertices_copy.push_back(new slitherlink_vertex(*vertex));
+    }
+    for (slitherlink_edge* edge : edges) {
+        edges_copy.push_back(new slitherlink_edge(*edge));
+    }
+    for (slitherlink_face* face : faces) {
+        faces_copy.push_back(new slitherlink_face(*face));
+    }
+    return new Slitherlink(params_bitmap,
+                           no_of_vertices,
+                           no_of_edges,
+                           no_of_faces,
+                           vertices_copy,
+                           edges_copy,
+                           faces_copy);
+}
+
 void Slitherlink::printPuzzle(std::ofstream* ofstream){
     *ofstream << "# Bitmap" << std::endl;
     *ofstream << std::bitset<NO_OF_PARAMS>(params_bitmap) << std::endl;
@@ -238,4 +265,10 @@ void Slitherlink::savePuzzle(std::string file_name){
     }
     printPuzzle(&file);
     file.close();
+}
+
+void Slitherlink::clearSolution(){
+    for (slitherlink_edge* edge : edges) {
+        edge->solution = EDGE_UNKNOWN;
+    }
 }

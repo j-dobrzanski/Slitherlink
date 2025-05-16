@@ -42,11 +42,17 @@ class Slitherlink {
 
         ~Slitherlink();
 
+        Slitherlink* copy();
+
         void printPuzzle(std::ofstream* ofstream);
 
         void savePuzzle(std::string file_name);
 
         int evaluateReferences();
+
+        bool checkCorrectness();
+
+        void clearSolution();
 };
 
 #endif // SLITHERLINK_H

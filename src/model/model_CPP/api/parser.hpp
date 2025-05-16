@@ -65,7 +65,7 @@ inline std::istream& parserGetLine(std::ifstream* file, std::string* line){
     do {
         std::getline(*file, *line);
     } while (isComment(*line));
-    LOG("Reading non-comment line: ", *line);
+    LOG_DEBUG("Reading non-comment line: ", *line);
     return *file;
 }
 

@@ -116,6 +116,7 @@ Slitherlink::Slitherlink(std::ptrdiff_t size){
     this->edges = new_edges;
     this->faces = new_faces;
     assert(this->evaluateReferences() == 0);
+    assert(this->checkCorrectness() == 0);
 }
 
 
@@ -166,14 +167,16 @@ inline void verticeLayer(std::ptrdiff_t layer_no,
     }
     else if (layer_no == size - 1) { // special case for last layer
         // first half of upper side
-        std::ptrdiff_t third_id = layer_no % 2 == 0 ?
-                                  -1 :
-                                  id - 12 * layer_no + 6;
+        std::ptrdiff_t first_id =  9 * (layer_no + 1) * (layer_no + 1) - 3 * (layer_no + 1) - 1;
+        std::ptrdiff_t second_id = 9 * layer_no * layer_no + 3 * layer_no;
+        std::ptrdiff_t third_id = layer_no % 2 == 1 ?
+                                  9 * layer_no * layer_no - 3 * layer_no :
+                                  -1;
         if (third_id != -1) {
             vertices[id] = new slitherlink_vertex{
                 .id = id,
                 .no_of_edges = 3,
-                .edge_ids = {id + 12 * layer_no - 6, id + 1, third_id},
+                .edge_ids = {first_id, second_id, third_id},
                 .edge_refs = {}
             };
         }
@@ -181,20 +184,22 @@ inline void verticeLayer(std::ptrdiff_t layer_no,
             vertices[id] = new slitherlink_vertex{
                 .id = id,
                 .no_of_edges = 2,
-                .edge_ids = {id + 12 * layer_no - 6, id + 1},
+                .edge_ids = {first_id, second_id},
                 .edge_refs = {}
             };
         }
         id++;
         for (std::ptrdiff_t i = 1; i < layer_no + 1; ++i) {
-            std::ptrdiff_t third_id = (layer_no % 2 + i % 2) % 2 == 0 ?
-                                       -1 :
-                                       id - 12 * layer_no + 6;
+            std::ptrdiff_t first_id =  9 * layer_no * layer_no + 3 * layer_no + i - 1;
+            std::ptrdiff_t second_id = 9 * layer_no * layer_no + 3 * layer_no + i;
+            std::ptrdiff_t third_id = (layer_no % 2 + i % 2) % 2 == 1 ?
+                                      9 * layer_no * layer_no - 3 * layer_no + i / 2:
+                                      -1;
             if (third_id != -1) {
                 vertices[id] = new slitherlink_vertex{
                     .id = id,
                     .no_of_edges = 3,
-                    .edge_ids = {id - 1, id + 1, third_id},
+                    .edge_ids = {first_id, second_id, third_id},
                     .edge_refs = {}
                 };
             }
@@ -202,7 +207,7 @@ inline void verticeLayer(std::ptrdiff_t layer_no,
                 vertices[id] = new slitherlink_vertex{
                     .id = id,
                     .no_of_edges = 2,
-                    .edge_ids = {id - 1, id + 1},
+                    .edge_ids = {first_id, second_id},
                     .edge_refs = {}
                 };
             }
@@ -212,14 +217,16 @@ inline void verticeLayer(std::ptrdiff_t layer_no,
         // five sides
         for (std::ptrdiff_t side = 0; side < 5; ++side) {
             for (std::ptrdiff_t i = 0; i < 2 * layer_no + 1; ++i) {
-                std::ptrdiff_t third_id = i % 2 == 0 ?
-                                          -1 :
-                                          id - 12 * layer_no + 6;
+                std::ptrdiff_t first_id =  9 * layer_no * layer_no + 3 * layer_no + layer_no * (2 * side + 1) + side + i;
+                std::ptrdiff_t second_id = 9 * layer_no * layer_no + 3 * layer_no + layer_no * (2 * side + 1) + side + i + 1;
+                std::ptrdiff_t third_id = i % 2 == 1 ?
+                                          9 * layer_no * layer_no - 3 * layer_no + (2 * side * layer_no + layer_no + i) / 2:
+                                          -1;
                 if (third_id != -1) {
                     vertices[id] = new slitherlink_vertex{
                         .id = id,
                         .no_of_edges = 3,
-                        .edge_ids = {id - 1, id + 1, third_id},
+                        .edge_ids = {first_id, second_id, third_id},
                         .edge_refs = {}
                     };
                 }
@@ -227,7 +234,7 @@ inline void verticeLayer(std::ptrdiff_t layer_no,
                     vertices[id] = new slitherlink_vertex{
                         .id = id,
                         .no_of_edges = 2,
-                        .edge_ids = {id - 1, id + 1},
+                        .edge_ids = {first_id, second_id},
                         .edge_refs = {}
                     };
                 }
@@ -237,14 +244,16 @@ inline void verticeLayer(std::ptrdiff_t layer_no,
 
         // second half of upper side 
         for (std::ptrdiff_t i = 0; i < layer_no - 1; ++i) {
-            std::ptrdiff_t third_id = (layer_no % 2 + i % 2) % 2 == 0 ?
-                                        -1 :
-                                        id - 12 * layer_no + 6;
+            std::ptrdiff_t first_id =  9 * layer_no * layer_no + 3 * layer_no + 11 * layer_no + 5 + i;
+            std::ptrdiff_t second_id = 9 * layer_no * layer_no + 3 * layer_no + 11 * layer_no + 5 + i + 1;
+            std::ptrdiff_t third_id = i % 2 == 1 ?
+                                      9 * layer_no * layer_no - 3 * layer_no + (11 * layer_no + i) / 2 :
+                                      -1;
             if (third_id != -1) {
                 vertices[id] = new slitherlink_vertex{
                     .id = id,
                     .no_of_edges = 3,
-                    .edge_ids = {id - 1, id + 1, third_id},
+                    .edge_ids = {first_id, second_id, third_id},
                     .edge_refs = {}
                 };
             }
@@ -252,20 +261,22 @@ inline void verticeLayer(std::ptrdiff_t layer_no,
                 vertices[id] = new slitherlink_vertex{
                     .id = id,
                     .no_of_edges = 2,
-                    .edge_ids = {id - 1, id + 1},
+                    .edge_ids = {first_id, second_id},
                     .edge_refs = {}
                 };
             }
             id++;
         }
-        third_id = layer_no % 2 == 1 ?
-                    -1 :
-                    id - 12 * layer_no + 6;
+        first_id = 9 * (layer_no + 1) * (layer_no + 1) - 3 * (layer_no + 1) - 2;
+        second_id = 9 * (layer_no + 1) * (layer_no + 1) - 3 * (layer_no + 1) - 1;
+        third_id = layer_no % 2 == 0 ?
+                    9 * layer_no * layer_no - 3 * layer_no + (12 * layer_no - 1) / 2 :
+                    -1;
         if (third_id != -1) {
             vertices[id] = new slitherlink_vertex{
                 .id = id,
                 .no_of_edges = 3,
-                .edge_ids = {id - 1, id + 12 * layer_no - 6, third_id},
+                .edge_ids = {first_id, second_id, third_id},
                 .edge_refs = {}
             };
         }
@@ -273,7 +284,7 @@ inline void verticeLayer(std::ptrdiff_t layer_no,
             vertices[id] = new slitherlink_vertex{
                 .id = id,
                 .no_of_edges = 2,
-                .edge_ids = {id - 1, id + 12 * layer_no - 6},
+                .edge_ids = {first_id, second_id},
                 .edge_refs = {}
             };
         }
@@ -284,9 +295,9 @@ inline void verticeLayer(std::ptrdiff_t layer_no,
         // first half of upper side
         std::ptrdiff_t first_id =  9 * (layer_no + 1) * (layer_no + 1) - 3 * (layer_no + 1) - 1;
         std::ptrdiff_t second_id = 9 * layer_no * layer_no + 3 * layer_no;
-        std::ptrdiff_t third_id = layer_no % 2 == 0 ?
+        std::ptrdiff_t third_id = layer_no % 2 == 1 ?
                                   9 * layer_no * layer_no - 3 * layer_no :
-                                  9 * (layer_no - 1) * (layer_no - 1) - 3 * (layer_no - 1);
+                                  9 * (layer_no + 1) * (layer_no + 1) - 3 * (layer_no + 1);
         vertices[id] = new slitherlink_vertex{
             .id = id,
             .no_of_edges = 3,
@@ -297,9 +308,9 @@ inline void verticeLayer(std::ptrdiff_t layer_no,
         for (std::ptrdiff_t i = 1; i < layer_no + 1; ++i) {
             std::ptrdiff_t first_id =  9 * layer_no * layer_no + 3 * layer_no + i - 1;
             std::ptrdiff_t second_id = 9 * layer_no * layer_no + 3 * layer_no + i;
-            std::ptrdiff_t third_id = (layer_no % 2 + i % 2) % 2 == 0 ?
+            std::ptrdiff_t third_id = (layer_no % 2 + i % 2) % 2 == 1 ?
                                       9 * layer_no * layer_no - 3 * layer_no + i / 2:
-                                      9 * (layer_no - 1) * (layer_no - 1) - 3 * (layer_no - 1) + i / 2;
+                                      9 * (layer_no + 1) * (layer_no + 1) - 3 * (layer_no + 1) + i / 2;
             vertices[id] = new slitherlink_vertex{
                 .id = id,
                 .no_of_edges = 3,
@@ -312,11 +323,11 @@ inline void verticeLayer(std::ptrdiff_t layer_no,
         // five sides
         for (std::ptrdiff_t side = 0; side < 5; ++side) {
             for (std::ptrdiff_t i = 0; i < 2 * layer_no + 1; ++i) {
-                std::ptrdiff_t first_id =  9 * layer_no * layer_no + 3 * layer_no + layer_no * (2 * side + 1) + i;
-                std::ptrdiff_t second_id = 9 * layer_no * layer_no + 3 * layer_no + layer_no * (2 * side + 1) + i + 1;
-                std::ptrdiff_t third_id = i % 2 == 0 ?
-                                          9 * layer_no * layer_no - 3 * layer_no + (layer_no * (side + 1) + side + i) / 2:
-                                          9 * (layer_no - 1) * (layer_no - 1) - 3 * (layer_no - 1) + (layer_no * (side + 1) + side + i) / 2;
+                std::ptrdiff_t first_id =  9 * layer_no * layer_no + 3 * layer_no + layer_no * (2 * side + 1) + side + i;
+                std::ptrdiff_t second_id = 9 * layer_no * layer_no + 3 * layer_no + layer_no * (2 * side + 1) + side + i + 1;
+                std::ptrdiff_t third_id = i % 2 == 1 ?
+                                          9 * layer_no * layer_no - 3 * layer_no + (2 * side * layer_no + layer_no + i) / 2:
+                                          9 * (layer_no + 1) * (layer_no + 1) - 3 * (layer_no + 1) + (2 * side * layer_no + layer_no + 2 * side + i) / 2 + 1;
                 vertices[id] = new slitherlink_vertex{
                     .id = id,
                     .no_of_edges = 3,
@@ -329,11 +340,11 @@ inline void verticeLayer(std::ptrdiff_t layer_no,
 
         // second half of upper side 
         for (std::ptrdiff_t i = 0; i < layer_no - 1; ++i) {
-            std::ptrdiff_t first_id =  9 * layer_no * layer_no + 3 * layer_no + 11 * layer_no + i;
-            std::ptrdiff_t second_id = 9 * layer_no * layer_no + 3 * layer_no + 11 * layer_no + i + 1;
-            std::ptrdiff_t third_id = (layer_no % 2 + i % 2) % 2 == 0 ?
-                                       9 * layer_no * layer_no - 3 * layer_no + (11 * layer_no + i + 5) / 2 :
-                                       9 * (layer_no - 1) * (layer_no - 1) - 3 * (layer_no - 1) + (11 * layer_no + i + 5) / 2;
+            std::ptrdiff_t first_id =  9 * layer_no * layer_no + 3 * layer_no + 11 * layer_no + 5 + i;
+            std::ptrdiff_t second_id = 9 * layer_no * layer_no + 3 * layer_no + 11 * layer_no + 5 + i + 1;
+            std::ptrdiff_t third_id = i % 2 == 1 ?
+                                      9 * layer_no * layer_no - 3 * layer_no + (11 * layer_no + i) / 2 :
+                                      9 * (layer_no + 1) * (layer_no + 1) - 3 * (layer_no + 1) + (11 * layer_no + i + 10) / 2 + 1;
             vertices[id] = new slitherlink_vertex{
                 .id = id,
                 .no_of_edges = 3,
@@ -344,9 +355,9 @@ inline void verticeLayer(std::ptrdiff_t layer_no,
         }
         first_id = 9 * (layer_no + 1) * (layer_no + 1) - 3 * (layer_no + 1) - 2;
         second_id = 9 * (layer_no + 1) * (layer_no + 1) - 3 * (layer_no + 1) - 1;
-        third_id = layer_no % 2 == 1 ?
-                    9 * layer_no * layer_no - 3 * layer_no + (12 * layer_no + 6) / 2 :
-                    9 * (layer_no - 1) * (layer_no - 1) - 3 * (layer_no - 1) + (12 * layer_no + 6) / 2;
+        third_id = layer_no % 2 == 0 ?
+                    9 * layer_no * layer_no - 3 * layer_no + (12 * layer_no - 1) / 2 :
+                    9 * (layer_no + 1) * (layer_no + 1) - 3 * (layer_no + 1) + (12 * layer_no + 8) / 2 + 1;
         vertices[id] = new slitherlink_vertex{
             .id = id,
             .no_of_edges = 3,
@@ -385,9 +396,7 @@ inline void edgeLayerInner(std::ptrdiff_t layer_no,
         std::ptrdiff_t face_first_id = layer_no % 2 == 0 ?
                                         3 * layer_no * layer_no - 3 * layer_no + 1 :
                                         3 * (layer_no + 1) * (layer_no + 1) - 3 * (layer_no + 1);
-        std::ptrdiff_t face_second_id = layer_no % 2 == 0 ?
-                                            3 * layer_no * layer_no - 3 * layer_no + 2 :
-                                            3 * layer_no * layer_no - 3 * layer_no + 1;
+        std::ptrdiff_t face_second_id = 3 * layer_no * layer_no - 3 * layer_no + 1 + (layer_no + 1) % 2;
         edges[id] = new slitherlink_edge{
             .id = id,
             .vertices = {vertice_first_id, vertice_second_id},
@@ -400,8 +409,8 @@ inline void edgeLayerInner(std::ptrdiff_t layer_no,
         for (std::ptrdiff_t i = 1; i < (layer_no + 1) / 2; ++i) {
             std::ptrdiff_t vertice_first_id =  6 * (layer_no - 1) * (layer_no - 1) + 2 * i + (layer_no + 1) % 2;
             std::ptrdiff_t vertice_second_id = 6 * layer_no * layer_no + 2 * i + (layer_no + 1) % 2;
-            std::ptrdiff_t face_first_id = 3 * layer_no * layer_no - 3 * layer_no + 1;
-            std::ptrdiff_t face_second_id = 3 * layer_no * layer_no - 3 * layer_no + 2;
+            std::ptrdiff_t face_first_id = 3 * layer_no * layer_no - 3 * layer_no + (layer_no + 1) % 2 + i;
+            std::ptrdiff_t face_second_id = 3 * layer_no * layer_no - 3 * layer_no + (layer_no + 1) % 2 + 1 + i;
             edges[id] = new slitherlink_edge{
                 .id = id,
                 .vertices = {vertice_first_id, vertice_second_id},
@@ -677,7 +686,7 @@ inline void edgeLayerOuter(std::ptrdiff_t layer_no,
             std::ptrdiff_t vertice_first_id =  6 * layer_no * layer_no + i;
             std::ptrdiff_t vertice_second_id = 6 * layer_no * layer_no + i + 1;
             std::ptrdiff_t face_first_id = 3 * layer_no * layer_no - 3 * layer_no + 1 + (i + (layer_no - 1) % 2)/2;
-            std::ptrdiff_t face_second_id = 3 * (layer_no + 1) * (layer_no + 1) - 3 * (layer_no + 1) + 1 + (i + 1)/2;
+            std::ptrdiff_t face_second_id = 3 * (layer_no + 1) * (layer_no + 1) - 3 * (layer_no + 1) + 1 + (i + layer_no % 2)/2;
             edges[id] = new slitherlink_edge{
                 .id = id,
                 .vertices = {vertice_first_id, vertice_second_id},
@@ -1139,7 +1148,7 @@ inline void faceLayer(std::ptrdiff_t layer_no,
             upper_edge_curr_id++;
         }
         lower_edge_curr_id++;
-        edge_fifth_id = layer_no != 2 ?
+        edge_fifth_id = layer_no % 2 != 0 ?
                             getNoOfEdges(layer_no) :
                             middle_edge_curr_id;
         edge_sixth_id = upper_edge_curr_id;
@@ -1538,7 +1547,7 @@ inline void faceLayer(std::ptrdiff_t layer_no,
             edge_fourth_id = upper_edge_curr_id;
             upper_edge_curr_id++;
         }
-        edge_fifth_id = layer_no != 2 ?
+        edge_fifth_id = layer_no % 2 != 0 ?
                             getNoOfEdges(layer_no) :
                             middle_edge_curr_id;
         edge_sixth_id = upper_edge_curr_id;
@@ -1580,4 +1589,75 @@ inline void faceLayer(std::ptrdiff_t layer_no,
 
     }
     *last_id = id;
+}
+
+bool Slitherlink::checkCorrectness() {
+    for (std::ptrdiff_t i = 0; i < no_of_edges; i++) {
+        slitherlink_vertex* vertex_0 = vertices[edges[i]->vertices[0]];
+        if (vertex_0->edge_refs[0]->id != i &&
+            vertex_0->edge_refs[1]->id != i) {
+            return false;
+        }
+        slitherlink_vertex* vertex_1 = vertices[edges[i]->vertices[1]];
+        if (vertex_1->edge_refs[0]->id != i &&
+            vertex_1->edge_refs[1]->id != i) {
+            return false;
+        }
+        slitherlink_face* face_0 = faces[edges[i]->face_ids[0]];
+        bool result = false;
+        for (std::ptrdiff_t j = 0; j < face_0->no_of_edges; ++j) {
+            if (face_0->edge_ids[j] == i) {
+                result = true;
+                break;
+            }
+        }
+        if (!result) {
+            return false;
+        }
+        result = false;
+        slitherlink_face* face_1 = faces[edges[i]->face_ids[1]];
+        for (std::ptrdiff_t j = 0; j < face_1->no_of_edges; ++j) {
+            if (face_1->edge_ids[j] == i) {
+                result = true;
+                break;
+            }
+        }
+        if (!result) {
+            return false;
+        }
+    }
+
+    for (std::ptrdiff_t i = 0; i < no_of_faces; i++) {
+        slitherlink_face* face = faces[i];
+        for (std::ptrdiff_t j = 0; j < face->no_of_edges; ++j) {
+            slitherlink_edge* edge = edges[face->edge_ids[j]];
+            if (edge->face_ids[0] != i && edge->face_ids[1] != i) {
+                return false;
+            }
+        }
+        for (std::ptrdiff_t j = 0; j < face->no_of_edges; ++j) {
+            slitherlink_face* face_1 = faces[face->face_ids[j]];
+            bool result = false;
+            for (std::ptrdiff_t k = 0; k < face_1->no_of_edges; ++k) {
+                if (face_1->face_ids[k] == i) {
+                    result = true;
+                    break;
+                }
+            }
+            if (!result) {
+                return false;
+            }
+        }
+    }
+
+    for (std::ptrdiff_t i = 0; i < no_of_vertices; i++) {
+        slitherlink_vertex* vertex = vertices[i];
+        for (std::ptrdiff_t j = 0; j < vertex->no_of_edges; ++j) {
+            if (vertex->edge_refs[j]->vertices[0] != i &&
+                vertex->edge_refs[j]->vertices[1] != i) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
