@@ -20,13 +20,22 @@ typedef struct solver_state {
     std::ptrdiff_t no_of_loop_parts = 0;
 } solver_state;
 
+typedef struct rule_state {
+    std::ptrdiff_t no_of_vertices;
+    std::ptrdiff_t no_of_edges;
+    std::ptrdiff_t no_of_faces;
+    std::vector<slitherlink_vertex*> vertices;
+    std::vector<slitherlink_edge*> edges;
+    std::vector<slitherlink_face*> faces;
+} rule_state;
+
 class Solver {
     public:
         Solver();
         ~Solver();
 
         void solvePuzzle(Slitherlink* slitherlink,
-                         std::vector<Slitherlink*> slitherlink_solution);
+                         std::vector<Slitherlink*>* slitherlink_solution);
     private:
 
         Slitherlink* original_slitherlink;
@@ -86,7 +95,17 @@ class Solver {
 
         std::pair<queue_item_type, std::ptrdiff_t> pop();
 
+
+        /** 
+         * Generate, save, load and check all possible rules
+         * for the puzzle
+         */
+
+        void generateAndSaveRules(std::string file_name,
+                                  std::ptrdiff_t base_size);
         
+        void generateBase(std::ptrdiff_t base_size);
+
 };
 
 

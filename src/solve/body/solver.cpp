@@ -10,11 +10,15 @@ Solver::Solver() {
 }
 
 Solver::~Solver() {
-
+    delete slitherlink;
+    for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)slitherlink_queue.size(); ++i) {
+        delete slitherlink_queue[i]->slitherlink;
+        delete slitherlink_queue[i];
+    }
 }
 
 void Solver::solvePuzzle(Slitherlink* new_slitherlink,
-                         std::vector<Slitherlink*> slitherlink_solution) {
+                         std::vector<Slitherlink*>* slitherlink_solution) {
     
     this->original_slitherlink = new_slitherlink;
     this->slitherlink = new_slitherlink->copy();
@@ -40,8 +44,8 @@ void Solver::solvePuzzle(Slitherlink* new_slitherlink,
         LOG_DEBUG("Solving puzzle");
         if (isSolved()) {
             LOG("Solution found");
-            slitherlink_solution.push_back(slitherlink->copy());
-            slitherlink->savePuzzle("solver_solution" + std::to_string(slitherlink_solution.size()) + ".txt");
+            slitherlink_solution->push_back(slitherlink->copy());
+            slitherlink->savePuzzle("solver_solution" + std::to_string(slitherlink_solution->size()) + ".txt");
             restoreGuess();
         }
         bool is_correct = true;
@@ -90,10 +94,7 @@ void Solver::solvePuzzle(Slitherlink* new_slitherlink,
             // slitherlink->savePuzzle("solver_step_count" + std::to_string(step_count) + "_restored.txt");
             // break;
         }
-
-
     }
-
 }
 
 bool Solver::isVertexSolved(slitherlink_vertex* edge_p) {
@@ -107,8 +108,12 @@ bool Solver::isVertexSolved(slitherlink_vertex* edge_p) {
 }
 
 bool Solver::isFaceSolved(slitherlink_face* face_p) {
+    if (face_p->id == OUTER_FACE) {
+        return true;
+    }
     for (std::ptrdiff_t i = 0; i < face_p->no_of_edges; ++i) {
-        if (face_p->edge_refs[i]->solution == EDGE_UNKNOWN) {
+        if ((face_p->edge_refs[i] != nullptr) &&
+            (face_p->edge_refs[i]->solution == EDGE_UNKNOWN)) {
             return false;
         }
     }
@@ -223,6 +228,7 @@ std::ptrdiff_t Solver::makeGuess() {
     if (no_of_unknown_edges == 0) {
         ERROR("No unknown edges");
         slitherlink->savePuzzle("solver_no_unknown_edges.txt");
+        delete state;
         return -1;
     }
 
@@ -243,8 +249,6 @@ std::ptrdiff_t Solver::makeGuess() {
     }
 
     assert(edge_id != -1);
-
-    // slitherlink_queue.push_back(std::make_pair(slitherlink->copy(), edge_id));
 
     state->slitherlink = slitherlink->copy();
     state->edge_id = edge_id;
@@ -280,6 +284,9 @@ bool Solver::restoreGuess() {
         ERROR("No more guesses to restore");
         return false;
     }
+
+    delete slitherlink;
+
     solver_state* state = slitherlink_queue.back();
     slitherlink_queue.pop_back();
     slitherlink = state->slitherlink;
@@ -295,6 +302,8 @@ bool Solver::restoreGuess() {
     queue.clear();
 
     push_edge(slitherlink->edges[state->edge_id]);
+
+    delete state;
 
     return true;
 }

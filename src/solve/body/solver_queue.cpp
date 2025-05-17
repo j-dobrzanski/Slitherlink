@@ -14,7 +14,8 @@ void Solver::push(std::pair<queue_item_type, std::ptrdiff_t> item) {
 
 void Solver::push_edge(slitherlink_edge* edge_p) {
     std::size_t queue_size = queue.size();
-    if (!faces_solved[edge_p->face_ids[0]]) {
+    if ((edge_p->face_ids[0] != -1) &&
+        (!faces_solved[edge_p->face_ids[0]])) {
         if (!isFaceSolved(edge_p->face_refs[0])) {
             LOG("Pushing face ", edge_p->face_ids[0], " to queue from edge ", edge_p->id);
             queue.push_back(std::make_pair(QUEUE_ITEM_FACE, edge_p->face_ids[0]));
@@ -22,7 +23,8 @@ void Solver::push_edge(slitherlink_edge* edge_p) {
     }
 
 
-    if (!faces_solved[edge_p->face_ids[1]]) {
+    if ((edge_p->face_ids[1] != -1) &&
+        (!faces_solved[edge_p->face_ids[1]])) {
         if (!isFaceSolved(edge_p->face_refs[1])) {
             LOG("Pushing face ", edge_p->face_ids[1], " to queue from edge ", edge_p->id);
             queue.push_back(std::make_pair(QUEUE_ITEM_FACE, edge_p->face_ids[1]));
