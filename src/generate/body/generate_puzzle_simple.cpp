@@ -89,7 +89,7 @@ void logIndicators(std::vector<int>* indicators, std::string name){
 }
 
 void createRandomLoop(Slitherlink* slitherlink, std::vector<int>* face_indicators, std::vector<int>* edge_indicators) {
-    LOG("Creating random loop");
+    LOG_DEBUG("Creating random loop");
     std::vector<std::ptrdiff_t> face_queue = std::vector<std::ptrdiff_t>();
     
     std::random_device rd;
@@ -133,7 +133,7 @@ void createRandomLoop(Slitherlink* slitherlink, std::vector<int>* face_indicator
 }
 
 void addFaceValues(Slitherlink* slitherlink, std::vector<int>* edge_indicators) {
-    LOG("Adding face values");
+    LOG_DEBUG("Adding face values");
     for (std::ptrdiff_t i = 0; i < slitherlink->no_of_faces - 1; ++i) {
         std::ptrdiff_t no_of_chosen_edges = 0;
         for (std::ptrdiff_t j = 0; j < slitherlink->faces[i]->no_of_edges; ++j) {
@@ -147,7 +147,7 @@ void addFaceValues(Slitherlink* slitherlink, std::vector<int>* edge_indicators) 
 }
 
 void addEdgeValues(Slitherlink* slitherlink, std::vector<int>* edge_indicators) {
-    LOG("Adding edge values");
+    LOG_DEBUG("Adding edge values");
     for (std::ptrdiff_t i = 0; i < slitherlink->no_of_edges; ++i) {
         if ((*edge_indicators)[i] == EDGE_ACCEPTED) {
             slitherlink->edges[i]->solution = EDGE_IN_SOLUTION;

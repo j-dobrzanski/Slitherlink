@@ -21,13 +21,25 @@ typedef struct solver_state {
 } solver_state;
 
 typedef struct rule_state {
+    std::ptrdiff_t base_size;
     std::ptrdiff_t no_of_vertices;
     std::ptrdiff_t no_of_edges;
     std::ptrdiff_t no_of_faces;
     std::vector<slitherlink_vertex*> vertices;
     std::vector<slitherlink_edge*> edges;
     std::vector<slitherlink_face*> faces;
+
+    rule_state* copy();
+
+    ~rule_state();
 } rule_state;
+
+typedef struct rule {
+    std::vector<std::ptrdiff_t> face_values;
+    std::vector<slitherlink_edge_type> base_edge_states;
+    bool is_positive;
+    std::vector<slitherlink_edge_type> derived_edge_states;
+} rule;
 
 class Solver {
     public:
@@ -36,6 +48,12 @@ class Solver {
 
         void solvePuzzle(Slitherlink* slitherlink,
                          std::vector<Slitherlink*>* slitherlink_solution);
+
+        void generateAndSaveRules(std::string file_name,
+                                  std::ptrdiff_t base_size);
+
+
+        void test();
     private:
 
         Slitherlink* original_slitherlink;
@@ -100,11 +118,9 @@ class Solver {
          * Generate, save, load and check all possible rules
          * for the puzzle
          */
+        rule_state* generateBase(std::ptrdiff_t base_size);
 
-        void generateAndSaveRules(std::string file_name,
-                                  std::ptrdiff_t base_size);
-        
-        void generateBase(std::ptrdiff_t base_size);
+        std::vector<rule*> generateRules(rule_state* base);
 
 };
 

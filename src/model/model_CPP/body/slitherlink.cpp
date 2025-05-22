@@ -7,7 +7,7 @@
 
 static int readDataFromFile(std::string file_name,
                             Slitherlink* slitherlink){
-    LOG("Reading data from file: ", file_name);
+    LOG_DEBUG("Reading data from file: ", file_name);
     std::ifstream file(file_name);
     if (!file) {
         ERROR("Can't open file of name: ", file_name);

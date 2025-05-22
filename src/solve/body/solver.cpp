@@ -6,11 +6,14 @@
 #include <algorithm>
 
 Solver::Solver() {
-
+    slitherlink = nullptr;
+    original_slitherlink = nullptr;
 }
 
 Solver::~Solver() {
-    delete slitherlink;
+    if(slitherlink != nullptr) {
+        delete slitherlink;
+    }
     for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)slitherlink_queue.size(); ++i) {
         delete slitherlink_queue[i]->slitherlink;
         delete slitherlink_queue[i];
@@ -43,7 +46,7 @@ void Solver::solvePuzzle(Slitherlink* new_slitherlink,
     while ((!isSolved() || !slitherlink_queue.empty()) && can_continue) {
         LOG_DEBUG("Solving puzzle");
         if (isSolved()) {
-            LOG("Solution found");
+            LOG_DEBUG("Solution found");
             slitherlink_solution->push_back(slitherlink->copy());
             slitherlink->savePuzzle("solver_solution" + std::to_string(slitherlink_solution->size()) + ".txt");
             restoreGuess();
@@ -68,11 +71,11 @@ void Solver::solvePuzzle(Slitherlink* new_slitherlink,
             auto item = pop();
             if (item.first == QUEUE_ITEM_FACE) {
                 is_correct = updateFaceEdges(item.second);
-                LOG("Face ", item.second, " updated");
+                LOG_DEBUG("Face ", item.second, " updated");
             }
             else if (item.first == QUEUE_ITEM_VERTEX) {
                 is_correct = updateVertexEdges(item.second);
-                LOG("Vertex ", item.second, " updated");
+                LOG_DEBUG("Vertex ", item.second, " updated");
             }
             else {
                 ERROR("Unknown item type in queue");
@@ -80,7 +83,7 @@ void Solver::solvePuzzle(Slitherlink* new_slitherlink,
             }
             // slitherlink->savePuzzle("solver_step_count" + std::to_string(step_count) + ".txt");
             if (!is_correct) {
-                LOG("Guess was incorrect - dropping queue");
+                LOG_DEBUG("Guess was incorrect - dropping queue");
                 break;
             }
 
@@ -89,7 +92,7 @@ void Solver::solvePuzzle(Slitherlink* new_slitherlink,
 
         if (!is_correct) {
             // slitherlink->savePuzzle("solver_step_count" + std::to_string(step_count) + ".txt");
-            // LOG("Guess was incorrect - restoring state before last guess after step: ", step_count);
+            // LOG_DEBUG("Guess was incorrect - restoring state before last guess after step: ", step_count);
             can_continue =  restoreGuess();
             // slitherlink->savePuzzle("solver_step_count" + std::to_string(step_count) + "_restored.txt");
             // break;
@@ -170,25 +173,25 @@ bool Solver::addToLoops(std::ptrdiff_t edge_id) {
         max_loop_part_id++;
         no_of_loop_parts++;
         edge_to_loop_part[edge_id] = max_loop_part_id;
-        LOG("New loop part: ", max_loop_part_id, " for edge: ", edge_id);
+        LOG_DEBUG("New loop part: ", max_loop_part_id, " for edge: ", edge_id);
     }
     else if (first_part_id == -1 && second_part_id != -1) {
         edge_to_loop_part[edge_id] = second_part_id;
-        LOG("Edge: ", edge_id, " is in loop part: ", second_part_id);
+        LOG_DEBUG("Edge: ", edge_id, " is in loop part: ", second_part_id);
     }
     else if (first_part_id != -1 && second_part_id == -1) {
         edge_to_loop_part[edge_id] = first_part_id;
-        LOG("Edge: ", edge_id, " is in loop part: ", first_part_id);
+        LOG_DEBUG("Edge: ", edge_id, " is in loop part: ", first_part_id);
     }
     else if (first_part_id != -1 && second_part_id != -1) {
         if (first_part_id == second_part_id) {
             if (no_of_loop_parts > 1) {
-                LOG("Edge: ", edge_id, " is in closed loop leaving other parts behind: ", first_part_id);
+                LOG_DEBUG("Edge: ", edge_id, " is in closed loop leaving other parts behind: ", first_part_id);
                 return false;
             }
             else {
                 edge_to_loop_part[edge_id] = first_part_id;
-                LOG("Edge: ", edge_id, " is in closed loop: ", first_part_id);
+                LOG_DEBUG("Edge: ", edge_id, " is in closed loop: ", first_part_id);
                 return isSolved();
             }
         }
@@ -199,7 +202,7 @@ bool Solver::addToLoops(std::ptrdiff_t edge_id) {
                 }
             }
             edge_to_loop_part[edge_id] = first_part_id;
-            LOG("Edge: ", edge_id, " is in last loop part: ", first_part_id);
+            LOG_DEBUG("Edge: ", edge_id, " is in last loop part: ", first_part_id);
         }
     }
     return true;
@@ -263,7 +266,7 @@ std::ptrdiff_t Solver::makeGuess() {
     // Possible TODO: randomize guess
     slitherlink->edges[edge_id]->solution = EDGE_IN_SOLUTION;
 
-    LOG("Guessing edge ", edge_id, " to be in solution: ", slitherlink->edges[edge_id]->solution);
+    LOG_DEBUG("Guessing edge ", edge_id, " to be in solution: ", slitherlink->edges[edge_id]->solution);
 
     push_edge(slitherlink->edges[edge_id]);
 
@@ -321,7 +324,7 @@ bool Solver::updateFaceEdges(std::ptrdiff_t face_id) {
             if (face->edge_refs[i]->solution == EDGE_UNKNOWN) {
                 face->edge_refs[i]->solution = EDGE_NOT_IN_SOLUTION;
                 push_edge(face->edge_refs[i]);
-                LOG("Push from face");
+                LOG_DEBUG("Push from face");
             }
         }
         return true;
@@ -345,25 +348,25 @@ bool Solver::updateFaceEdges(std::ptrdiff_t face_id) {
     }
 
 
-    LOG("Face ", face_id, " edges in solution: ", edges_in_solution,
+    LOG_DEBUG("Face ", face_id, " edges in solution: ", edges_in_solution,
         " edges unknown: ", edges_unknown);
     if (edges_in_solution == face->value) {
         for (std::ptrdiff_t i = 0; i < face->no_of_edges; ++i) {
-            LOG("Face ", face_id, " edge id", face->edge_refs[i]->id);
+            LOG_DEBUG("Face ", face_id, " edge id", face->edge_refs[i]->id);
             if (face->edge_refs[i]->solution == EDGE_UNKNOWN) {
                 face->edge_refs[i]->solution = EDGE_NOT_IN_SOLUTION;
                 push_edge(face->edge_refs[i]);
-                LOG("Push from face - edge not in solution");
+                LOG_DEBUG("Push from face - edge not in solution");
             }
         }
     }
     else if (edges_in_solution + edges_unknown == face->value) {
         for (std::ptrdiff_t i = 0; i < face->no_of_edges; ++i) {
-            LOG("Face ", face_id, " edge id", face->edge_refs[i]->id);
+            LOG_DEBUG("Face ", face_id, " edge id", face->edge_refs[i]->id);
             if (face->edge_refs[i]->solution == EDGE_UNKNOWN) {
                 face->edge_refs[i]->solution = EDGE_IN_SOLUTION;
                 push_edge(face->edge_refs[i]);
-                LOG("Push from face - edge in solution");
+                LOG_DEBUG("Push from face - edge in solution");
                 if (!addToLoops(face->edge_refs[i]->id)) {
                     ERROR("Face ", face_id, " edge id", face->edge_refs[i]->id,
                           " creates wrong looping");
@@ -397,7 +400,7 @@ bool Solver::updateVertexEdges(std::ptrdiff_t vertex_id) {
         return false;
     }
 
-    LOG("Vertex ", vertex_id, " edges in solution: ", edges_in_solution,
+    LOG_DEBUG("Vertex ", vertex_id, " edges in solution: ", edges_in_solution,
         " edges unknown: ", edges_unknown);
 
     if (edges_unknown > 0) {
@@ -406,7 +409,7 @@ bool Solver::updateVertexEdges(std::ptrdiff_t vertex_id) {
                 if (vertex->edge_refs[i]->solution == EDGE_UNKNOWN) {
                     vertex->edge_refs[i]->solution = EDGE_NOT_IN_SOLUTION;
                     push_edge(vertex->edge_refs[i]);
-                    LOG("Push from vertex");
+                    LOG_DEBUG("Push from vertex");
                 }
             }
         }
@@ -416,7 +419,7 @@ bool Solver::updateVertexEdges(std::ptrdiff_t vertex_id) {
                 if (vertex->edge_refs[i]->solution == EDGE_UNKNOWN) {
                     vertex->edge_refs[i]->solution = EDGE_IN_SOLUTION;
                     push_edge(vertex->edge_refs[i]);
-                    LOG("Push from vertex");
+                    LOG_DEBUG("Push from vertex");
                     if (!addToLoops(vertex->edge_refs[i]->id)) {
                         ERROR("Vertex ", vertex_id, " edge id", vertex->edge_refs[i]->id,
                               " creates wrong looping");
@@ -430,7 +433,7 @@ bool Solver::updateVertexEdges(std::ptrdiff_t vertex_id) {
                 if (vertex->edge_refs[i]->solution == EDGE_UNKNOWN) {
                     vertex->edge_refs[i]->solution = EDGE_NOT_IN_SOLUTION;
                     push_edge(vertex->edge_refs[i]);
-                    LOG("Push from vertex");
+                    LOG_DEBUG("Push from vertex");
                 }
             }
         }

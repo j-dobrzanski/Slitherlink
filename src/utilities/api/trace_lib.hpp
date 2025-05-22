@@ -8,8 +8,8 @@
 #define ERROR(...);
 
 
-// #define LOG(...); line_wrapper_log(__FILE__, __func__, __LINE__, __VA_ARGS__);
-#define LOG(...); 
+#define LOG(...); line_wrapper_log(__FILE__, __func__, __LINE__, __VA_ARGS__);
+// #define LOG(...); 
 
 // #define LOG_DEBUG(...); line_wrapper_log(__FILE__, __func__, __LINE__, __VA_ARGS__);
 #define LOG_DEBUG(...);

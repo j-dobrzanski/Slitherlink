@@ -101,7 +101,7 @@ Slitherlink::Slitherlink(std::ptrdiff_t size){
     //             }
     //         }
     //         if (!found) {
-    //             LOG("Edge ", edge_id, " not found in face ", face_id);
+    //             LOG_DEBUG("Edge ", edge_id, " not found in face ", face_id);
     //         }
     //     }
     // }

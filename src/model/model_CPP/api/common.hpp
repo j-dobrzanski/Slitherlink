@@ -18,9 +18,9 @@ typedef struct slitherlink_vertex slitherlink_vertex;
  * EDGE_UNKNOWN: edge is not yet known
  */
 typedef enum slitherlink_edge_type {
+    EDGE_UNKNOWN = 0,
     EDGE_IN_SOLUTION,
-    EDGE_NOT_IN_SOLUTION,
-    EDGE_UNKNOWN
+    EDGE_NOT_IN_SOLUTION
 } slitherlink_edge_type;
 
 /**

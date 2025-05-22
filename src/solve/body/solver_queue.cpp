@@ -17,7 +17,7 @@ void Solver::push_edge(slitherlink_edge* edge_p) {
     if ((edge_p->face_ids[0] != -1) &&
         (!faces_solved[edge_p->face_ids[0]])) {
         if (!isFaceSolved(edge_p->face_refs[0])) {
-            LOG("Pushing face ", edge_p->face_ids[0], " to queue from edge ", edge_p->id);
+            LOG_DEBUG("Pushing face ", edge_p->face_ids[0], " to queue from edge ", edge_p->id);
             queue.push_back(std::make_pair(QUEUE_ITEM_FACE, edge_p->face_ids[0]));
         }
     }
@@ -26,21 +26,21 @@ void Solver::push_edge(slitherlink_edge* edge_p) {
     if ((edge_p->face_ids[1] != -1) &&
         (!faces_solved[edge_p->face_ids[1]])) {
         if (!isFaceSolved(edge_p->face_refs[1])) {
-            LOG("Pushing face ", edge_p->face_ids[1], " to queue from edge ", edge_p->id);
+            LOG_DEBUG("Pushing face ", edge_p->face_ids[1], " to queue from edge ", edge_p->id);
             queue.push_back(std::make_pair(QUEUE_ITEM_FACE, edge_p->face_ids[1]));
         }
     }
 
     if (!vertices_solved[edge_p->vertices[0]]) {
         if (!isVertexSolved(edge_p->vertex_refs[0])) {
-            LOG("Pushing vertex ", edge_p->vertices[0], " to queue from edge ", edge_p->id);
+            LOG_DEBUG("Pushing vertex ", edge_p->vertices[0], " to queue from edge ", edge_p->id);
             queue.push_back(std::make_pair(QUEUE_ITEM_VERTEX, edge_p->vertices[0]));
         }
     }
 
     if (!vertices_solved[edge_p->vertices[1]]) {
         if (!isVertexSolved(edge_p->vertex_refs[1])) {
-            LOG("Pushing vertex ", edge_p->vertices[1], " to queue from edge ", edge_p->id);
+            LOG_DEBUG("Pushing vertex ", edge_p->vertices[1], " to queue from edge ", edge_p->id);
             queue.push_back(std::make_pair(QUEUE_ITEM_VERTEX, edge_p->vertices[1]));
         }
     }
