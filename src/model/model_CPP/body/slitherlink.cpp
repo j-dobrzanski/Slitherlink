@@ -4,6 +4,7 @@
 #include <fstream>
 #include <cassert>
 #include <bitset>
+#include <cmath>
 
 static int readDataFromFile(std::string file_name,
                             Slitherlink* slitherlink){
@@ -271,4 +272,8 @@ void Slitherlink::clearSolution(){
     for (slitherlink_edge* edge : edges) {
         edge->solution = EDGE_UNKNOWN;
     }
+}
+
+std::ptrdiff_t Slitherlink::getNoOfLayers(){
+    return (1 + (std::ptrdiff_t)std::sqrt(4 * no_of_edges + 1)) / 6;
 }

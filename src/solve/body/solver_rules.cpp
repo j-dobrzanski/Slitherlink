@@ -3,6 +3,8 @@
 
 #include <array>
 #include <fstream>
+#include <sstream>
+#include <algorithm>
 
 // Local function definitions
 bool isOuter(slitherlink_edge* edge_p) {
@@ -215,7 +217,6 @@ bool addSolutionToRule(rule_state* base,
                        std::vector<slitherlink_edge_type>* new_solution) {
     if ((base->edges.size() != current_rule->size()) ||
         (base->edges.size() != new_solution->size())) {
-        ERROR("Base and rule state have different number of edges");
         return false;
     }
 
@@ -235,6 +236,296 @@ bool addSolutionToRule(rule_state* base,
     return common_part;
 }
 
+std::ptrdiff_t isReducible(rule* first,
+                 rule* second) {
+    // // print derived edge states
+    // for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)first->derived_edge_states.size(); i++) {
+    //     std::cout << first->derived_edge_states[i] << " ";
+    // }
+    // std::cout << std::endl;
+    // for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)second->derived_edge_states.size(); i++) {
+    //     std::cout << second->derived_edge_states[i] << " ";
+    // }
+    // std::cout << std::endl;
+    if (first->derived_edge_states.size() != second->derived_edge_states.size()) {
+        return -1; // not reducible
+    }
+    for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)first->derived_edge_states.size(); i++) {
+        if (first->derived_edge_states[i] != second->derived_edge_states[i]) {
+            return -1; // not reducible
+        }
+    }
+    // std::cout << "Derived equal" << std::endl;
+    std::ptrdiff_t stronger = 0;
+    for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)first->base_edge_states.size(); i++) {
+        if (first->base_edge_states[i] != second->base_edge_states[i]) {
+            if (first->base_edge_states[i] == EDGE_UNKNOWN) {
+                if (stronger == 2) {
+                    return -1; // not reducible
+                }
+                stronger = 1; 
+            }
+            else if (second->base_edge_states[i] == EDGE_UNKNOWN) {
+                if (stronger == 1) {
+                    return -1; // not reducible
+                }
+                stronger = 2;
+            }
+            else {
+                return -1; // not reducible
+            }
+        }
+    }
+    return stronger; // 1 - first is stronger, 2 - second is stronger, 0 - equal, -1 - not reducible
+}
+
+bool checkIfSimpleRulesapply(rule* rule_p,
+                             rule_state* base,
+                             rule_state* derived) {
+    for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)rule_p->base_edge_states.size(); i++) {
+        base->edges[i]->solution = rule_p->base_edge_states[i];
+    }
+
+    for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)rule_p->derived_edge_states.size(); i++) {
+        derived->edges[i]->solution = rule_p->derived_edge_states[i];
+    }
+
+    for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)rule_p->face_values.size(); i++) {
+        base->faces[i]->value = rule_p->face_values[i];
+        derived->faces[i]->value = rule_p->face_values[i];
+    }
+
+    // // print base edges
+    // std::cout << "Base edges: ";
+    // for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)base->edges.size(); i++) {
+    //     std::cout << base->edges[i]->solution << " ";
+    // }
+    // std::cout << std::endl;
+
+    // apply vertice rule
+    for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)base->vertices.size(); i++) {
+        if(base->vertices[i]->no_of_edges == 1) {
+            continue;
+        }
+        slitherlink_vertex* vertex = base->vertices[i];
+        std::ptrdiff_t no_of_edges_in_solution = 0;
+        std::ptrdiff_t no_of_unknown_edges = 0;
+        for (std::ptrdiff_t j = 0; j < vertex->no_of_edges; j++) {
+            slitherlink_edge* edge = vertex->edge_refs[j];
+            if (edge->solution == EDGE_IN_SOLUTION) {
+                no_of_edges_in_solution++;
+            }
+            else if (edge->solution == EDGE_UNKNOWN) {
+                no_of_unknown_edges++;
+            }
+        }
+        if (no_of_edges_in_solution == 1 &&
+            no_of_unknown_edges == 1) {
+            for (std::ptrdiff_t j = 0; j < vertex->no_of_edges; j++) {
+                slitherlink_edge* edge = vertex->edge_refs[j];
+                if (edge->solution == EDGE_UNKNOWN) {
+                    edge->solution = EDGE_IN_SOLUTION;
+                }
+            }
+        }
+        else if (no_of_edges_in_solution == 0 &&
+                 no_of_unknown_edges == 1) {
+            for (std::ptrdiff_t j = 0; j < vertex->no_of_edges; j++) {
+                slitherlink_edge* edge = vertex->edge_refs[j];
+                if (edge->solution == EDGE_UNKNOWN) {
+                    edge->solution = EDGE_NOT_IN_SOLUTION;
+                }
+            }
+        }
+        else if (no_of_edges_in_solution == 2 &&
+                 no_of_unknown_edges > 0) {
+            for (std::ptrdiff_t j = 0; j < vertex->no_of_edges; j++) {
+                slitherlink_edge* edge = vertex->edge_refs[j];
+                if (edge->solution == EDGE_UNKNOWN) {
+                    edge->solution = EDGE_NOT_IN_SOLUTION;
+                }
+            }
+        }
+    }
+
+    // std::cout << "Edge states after applying rule: " << std::endl;
+    // for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)base->edges.size(); i++) {
+    //     std::cout << base->edges[i]->solution << " ";
+    // }
+    // std::cout << std::endl;
+
+    // apply face rule
+    for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)base->faces.size(); i++) {
+        slitherlink_face* face = base->faces[i];
+        std::ptrdiff_t no_of_edges_in_solution = 0;
+        std::ptrdiff_t no_of_unknown_edges = 0;
+        for (std::ptrdiff_t j = 0; j < face->no_of_edges; j++) {
+            slitherlink_edge* edge = face->edge_refs[j];
+            if (edge->solution == EDGE_IN_SOLUTION) {
+                no_of_edges_in_solution++;
+            }
+            else if (edge->solution == EDGE_UNKNOWN) {
+                no_of_unknown_edges++;
+            }
+        }
+        if (no_of_edges_in_solution == face->value) {
+            for (std::ptrdiff_t j = 0; j < face->no_of_edges; j++) {
+                slitherlink_edge* edge = face->edge_refs[j];
+                if (edge->solution == EDGE_UNKNOWN) {
+                    edge->solution = EDGE_NOT_IN_SOLUTION;
+                }
+            }
+        }
+        else if (no_of_edges_in_solution + no_of_unknown_edges == face->value) {
+            for (std::ptrdiff_t j = 0; j < face->no_of_edges; j++) {
+                slitherlink_edge* edge = face->edge_refs[j];
+                if (edge->solution == EDGE_UNKNOWN) {
+                    edge->solution = EDGE_IN_SOLUTION;
+                }
+            }
+        }
+    }
+
+    // std::cout << "Edge states after applying rule: " << std::endl;
+    // for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)base->edges.size(); i++) {
+    //     std::cout << base->edges[i]->solution << " ";
+    // }
+    // std::cout << std::endl;
+
+    // apply vertice rule again
+    for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)base->vertices.size(); i++) {
+        if(base->vertices[i]->no_of_edges == 1) {
+            continue;
+        }
+        slitherlink_vertex* vertex = base->vertices[i];
+        std::ptrdiff_t no_of_edges_in_solution = 0;
+        std::ptrdiff_t no_of_unknown_edges = 0;
+        for (std::ptrdiff_t j = 0; j < vertex->no_of_edges; j++) {
+            slitherlink_edge* edge = vertex->edge_refs[j];
+            if (edge->solution == EDGE_IN_SOLUTION) {
+                no_of_edges_in_solution++;
+            }
+            else if (edge->solution == EDGE_UNKNOWN) {
+                no_of_unknown_edges++;
+            }
+        }
+        if (no_of_edges_in_solution == 1 &&
+            no_of_unknown_edges == 1) {
+            for (std::ptrdiff_t j = 0; j < vertex->no_of_edges; j++) {
+                slitherlink_edge* edge = vertex->edge_refs[j];
+                if (edge->solution == EDGE_UNKNOWN) {
+                    edge->solution = EDGE_IN_SOLUTION;
+                }
+            }
+        }
+        else if (no_of_edges_in_solution == 0 &&
+                 no_of_unknown_edges == 1) {
+            for (std::ptrdiff_t j = 0; j < vertex->no_of_edges; j++) {
+                slitherlink_edge* edge = vertex->edge_refs[j];
+                if (edge->solution == EDGE_UNKNOWN) {
+                    edge->solution = EDGE_NOT_IN_SOLUTION;
+                }
+            }
+        }
+        else if (no_of_edges_in_solution == 2 &&
+                 no_of_unknown_edges > 0) {
+            for (std::ptrdiff_t j = 0; j < vertex->no_of_edges; j++) {
+                slitherlink_edge* edge = vertex->edge_refs[j];
+                if (edge->solution == EDGE_UNKNOWN) {
+                    edge->solution = EDGE_NOT_IN_SOLUTION;
+                }
+            }
+        }
+    }
+
+    // //print edge states
+    // std::cout << "Edge states after applying rule: " << std::endl;
+    // for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)base->edges.size(); i++) {
+    //     std::cout << base->edges[i]->solution << " ";
+    // }
+    // std::cout << std::endl;
+    // std::cout << "Derived edge states after applying rule: " << std::endl;
+    // for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)derived->edges.size(); i++) {
+    //     std::cout << derived->edges[i]->solution << " ";
+    // }
+    // std::cout << std::endl;
+    for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)base->edges.size(); i++) {
+        if (base->edges[i]->solution != derived->edges[i]->solution) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+void Solver::saveRule(std::ofstream* file,
+                      rule* rule_p) {
+    if (!file || !(*file)) {
+        ERROR("Can't open file for saving rules");
+    }
+    *file << "# Rule: " << std::endl;
+    // file << "# Face values: " << std::endl;
+    for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)rule_p->face_values.size(); i++) {
+        *file << rule_p->face_values[i] << " ";
+    }
+    *file << std::endl;
+    // file << "# Base edge states: " << std::endl;
+    for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)rule_p->base_edge_states.size(); i++) {
+        *file << rule_p->base_edge_states[i] << " ";
+    }
+    *file << std::endl;
+    if (rule_p->is_positive) {
+        // file << "# Positive rule: " << std::endl;
+        *file << rule_p->is_positive << std::endl;
+        for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)rule_p->derived_edge_states.size(); i++) {
+            *file << rule_p->derived_edge_states[i] << " ";
+        }
+        *file << std::endl;
+    }
+    else {
+        // file << "# Negative rule: " << std::endl;
+        *file << rule_p->is_positive << std::endl;
+    }
+}
+
+rule* Solver::readRule(std::ifstream* file) {
+    if (!file || !(*file)) {
+        ERROR("Can't open file for reading rules");
+    }
+
+    rule* new_rule = new rule();
+    std::string line;
+
+    // Read face values
+    std::getline(*file, line);
+    std::istringstream face_values_stream(line);
+    while (face_values_stream >> line) {
+        new_rule->face_values.push_back(std::stoi(line));
+    }
+
+    // Read base edge states
+    std::getline(*file, line);
+    std::istringstream base_edge_states_stream(line);
+    while (base_edge_states_stream >> line) {
+        new_rule->base_edge_states.push_back(static_cast<slitherlink_edge_type>(std::stoi(line)));
+    }
+
+    // Read is_positive flag
+    std::getline(*file, line);
+    new_rule->is_positive = (line == "1");
+
+    if (new_rule->is_positive) {
+        // Read derived edge states
+        std::getline(*file, line);
+        std::istringstream derived_edge_states_stream(line);
+        while (derived_edge_states_stream >> line) {
+            new_rule->derived_edge_states.push_back(static_cast<slitherlink_edge_type>(std::stoi(line)));
+        }
+    }
+
+    return new_rule;
+}
+
 std::pair<bool, std::vector<slitherlink_edge_type>> searchForRules(rule_state* base) {
     rule_state* derived = base->copy();
 
@@ -245,6 +536,10 @@ std::pair<bool, std::vector<slitherlink_edge_type>> searchForRules(rule_state* b
         }
     }
 
+    if (!isValidState(base)) {
+        delete derived;
+        return {false, {}};
+    }
 
     std::pair<bool, std::vector<slitherlink_edge_type>> result = {false, {}};
     while (getNextState(base, derived)) {
@@ -270,7 +565,7 @@ std::pair<bool, std::vector<slitherlink_edge_type>> searchForRules(rule_state* b
     }
 
     delete derived;
-    return result;
+    return {true, result.second};
 }
 
 rule_state* rule_state::copy() {
@@ -311,6 +606,9 @@ rule_state* rule_state::copy() {
 }
 
 rule_state::~rule_state() {
+    if (is_copied) {
+        return; // Do not delete if it is a copy
+    }
     for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)vertices.size(); i++) {
         delete vertices[i];
     }
@@ -334,29 +632,7 @@ void Solver::generateAndSaveRules(std::string file_name,
     }
     file << "# Base size: " << base_size << std::endl;
     for (rule* rule : rules) {
-        file << "# Rule: " << std::endl;
-        // file << "# Face values: " << std::endl;
-        for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)base->faces.size(); i++) {
-            file << rule->face_values[i] << " ";
-        }
-        file << std::endl;
-        // file << "# Base edge states: " << std::endl;
-        for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)base->edges.size(); i++) {
-            file << rule->base_edge_states[i] << " ";
-        }
-        file << std::endl;
-        if (rule->is_positive) {
-            // file << "# Positive rule: " << std::endl;
-            file << rule->is_positive << std::endl;
-            for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)base->edges.size(); i++) {
-                file << rule->derived_edge_states[i] << " ";
-            }
-            file << std::endl;
-        }
-        else {
-            // file << "# Negative rule: " << std::endl;
-            file << rule->is_positive << std::endl;
-        }
+        saveRule(&file, rule);
         delete rule;
     }
     delete base;
@@ -456,6 +732,260 @@ std::vector<rule*> Solver::generateRules(rule_state* base) {
     return rules;
 }
 
+void Solver::refineAndSaveRules(std::string raw_rules_file_name,
+                                std::string refined_rules_file_name,
+                                std::ptrdiff_t base_size) {
+    std::ifstream file(raw_rules_file_name);
+    if (!file) {
+        ERROR("Can't open file of name: ", raw_rules_file_name);
+    }
+    std::string line;
+    std::getline(file, line);
+    if (line != "# Base size: " + std::to_string(base_size)) {
+        ERROR("File does not match base size: ", base_size);
+    }
+    rule_state* base = generateBase(base_size);
+    rule_state* derived = generateBase(base_size);
+    std::vector<std::vector<rule*>> rules(6);
+
+    std::getline(file, line);
+
+    while(line == "# Rule: "){
+        rule* new_rule = readRule(&file);
+        rules[new_rule->face_values[0]].push_back(new_rule);
+        std::getline(file, line);
+    }
+    file.close();
+
+    std::cout << "Refining rules..." << std::endl;
+
+    for (std::ptrdiff_t i = 1; i < (std::ptrdiff_t)rules.size(); i++) {
+        std::cout << "Refining rules for face value: " << i << std::endl;
+        std::vector<rule*>& rules_for_face = rules[i];
+
+        std::cout << "Number of rules before refinement: " << rules_for_face.size() << std::endl; 
+        // refine rules
+        std::vector<rule*> refined_rules;
+        std::vector<bool> reduced_rules(rules_for_face.size(), true);
+        for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)rules_for_face.size(); i++) {
+            if (reduced_rules[i]) {
+                rule* rule_p = rules_for_face[i];
+                for (std::ptrdiff_t j = i + 1; j < (std::ptrdiff_t)rules_for_face.size(); j++) {
+                    std::ptrdiff_t stronger = isReducible(rule_p, rules_for_face[j]);
+                    if (stronger == 1) {
+                        reduced_rules[j] = false;
+                    }
+                    else if (stronger == 2) {
+                        reduced_rules[i] = false;
+                    }
+                }                
+            }
+        }
+
+        for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)rules_for_face.size(); i++) {
+            if (reduced_rules[i]) {
+                refined_rules.push_back(rules_for_face[i]);
+            }
+            else {
+                delete rules_for_face[i];
+            }
+        }
+
+        std::cout << "Number of rules after first reduction: ";
+        std::cout << refined_rules.size() << std::endl;
+
+        rules_for_face = refined_rules;
+        refined_rules.clear();
+
+        for (rule* rule_p : rules_for_face) {
+            if (!rule_p->is_positive) {
+                refined_rules.push_back(rule_p);
+                continue;
+            }
+            if (!checkIfSimpleRulesapply(rule_p, base, derived)) {
+                refined_rules.push_back(rule_p);
+            }
+            else {
+                delete rule_p;
+            }
+        }
+
+        std::cout << "Number of rules after second reduction: ";
+        std::cout << refined_rules.size() << std::endl;
+
+        rules_for_face = refined_rules;
+        refined_rules.clear();
+    }
+
+
+    // save rules
+    std::ofstream out_file(refined_rules_file_name);
+    if (!out_file) {
+        ERROR("Can't open file of name: ", refined_rules_file_name);
+    }
+    out_file << "# Base size: " << base_size << std::endl;
+    for (std::vector<rule*> rule_vector_p : rules) {
+        for (rule* rule_p : rule_vector_p) {
+            saveRule(&out_file, rule_p);
+            delete rule_p;
+        }
+    }
+
+    delete base;
+    delete derived;
+    out_file.close();
+}
+
+void Solver::applyRules(std::vector<rule*> rules,
+                        slitherlink_face* face_p) {
+    if (!face_p) {
+        ERROR("Face is null");
+        return;
+    }
+
+    for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)face_p->face_ids.size(); i++) {
+        if (face_p->face_ids[i] == OUTER_FACE) {
+            return;
+        }
+    }
+
+    rule_state* base = new rule_state();
+    base->is_copied = true; // This is a copied base, do not delete it in destructor
+    base->base_size = 2;
+    base->no_of_vertices = 12;
+    base->no_of_edges = 12;
+    base->no_of_faces = 1;
+    base->faces.push_back(face_p);
+
+    base->vertices.push_back(face_p->edge_refs[0]->vertex_refs[0]);
+    slitherlink_vertex* vertex = base->vertices[0];
+    // std::cout << "Starting vertex: " << (base->vertices[0] ? std::to_string(base->vertices[0]->id) : "null") << std::endl;
+    while (base->vertices.size() != 6) {
+        // std::cout << "Current vertex: " << (vertex ? std::to_string(vertex->id) : "null") << std::endl;
+        // std::cout << "Vertices in base: ";
+        // for (slitherlink_vertex* v : base->vertices) {
+        //     std::cout << v->id << " ";
+        // }
+        // std::cout << std::endl;
+        for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)vertex->no_of_edges; i++) {
+            slitherlink_edge* edge = vertex->edge_refs[i];
+            if (std::find(face_p->edge_refs.begin(), face_p->edge_refs.end(), edge) != face_p->edge_refs.end()) {
+                // std::cout << "Found edge in face: " << edge->id << std::endl;
+                auto first = std::find(base->vertices.begin(), base->vertices.end(), edge->vertex_refs[0]);
+                auto second = std::find(base->vertices.begin(), base->vertices.end(), edge->vertex_refs[1]);
+                if (first == base->vertices.end()) {
+                    vertex = edge->vertex_refs[0];
+                    base->vertices.push_back(vertex);
+                    base->edges.push_back(edge);
+                }
+                else if (second == base->vertices.end()) {
+                    vertex = edge->vertex_refs[1];
+                    base->vertices.push_back(vertex);
+                    base->edges.push_back(edge);
+                }
+            }
+        }
+    }
+    for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)vertex->no_of_edges; i++) {
+        slitherlink_edge* edge = vertex->edge_refs[i];
+        if (std::find(face_p->edge_refs.begin(), face_p->edge_refs.end(), edge) != face_p->edge_refs.end()) {
+            if (edge->vertex_refs[0] == base->vertices[0] ||
+                edge->vertex_refs[1] == base->vertices[0]) {
+                base->edges.push_back(edge);
+            }
+        }
+    }
+
+
+    for (std::ptrdiff_t i = 0; i < 6; i++) {
+        slitherlink_vertex* vertex = base->vertices[i];
+        for (std::ptrdiff_t j = 0; j < vertex->no_of_edges; j++) {
+            if (std::find(base->vertices.begin(), base->vertices.end(), vertex->edge_refs[j]->vertex_refs[0]) == base->vertices.end()) {
+                base->edges.push_back(vertex->edge_refs[j]);
+                base->vertices.push_back(vertex->edge_refs[j]->vertex_refs[0]);
+            }
+            else if (std::find(base->vertices.begin(), base->vertices.end(), vertex->edge_refs[j]->vertex_refs[1]) == base->vertices.end()) {
+                base->edges.push_back(vertex->edge_refs[j]);
+                base->vertices.push_back(vertex->edge_refs[j]->vertex_refs[1]);
+            }
+        }
+    }
+
+    for (std::ptrdiff_t i = 0; i < 6; i++) {
+        vertex = base->vertices[6 + i];
+        for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)vertex->no_of_edges; i++) {
+            slitherlink_edge* edge = vertex->edge_refs[i];
+            if (std::find(face_p->edge_refs.begin(), face_p->edge_refs.end(), edge) == face_p->edge_refs.end()) {
+                auto first = std::find(base->vertices.begin(), base->vertices.end(), edge->vertex_refs[0]);
+                auto second = std::find(base->vertices.begin(), base->vertices.end(), edge->vertex_refs[1]);
+                if (first == base->vertices.end()) {
+                    base->edges.push_back(edge);
+                }
+                else if (second == base->vertices.end()) {
+                    base->edges.push_back(edge);
+                }
+            }
+        }
+    }
+
+    for(rule* rule_p : rules) {
+        bool base_correct = true;
+        for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)rule_p->face_values.size(); i++) {
+            if (rule_p->face_values[i] != face_p->value) {
+                base_correct = false;
+                break;
+            }
+        }
+
+        if (!base_correct) {
+            continue;
+        }
+
+        for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)rule_p->base_edge_states.size(); i++) {
+            if (rule_p->base_edge_states[i] != base->edges[i]->solution) {
+                base_correct = false;
+                break;
+            }
+        }
+
+        if (!base_correct) {
+            continue;
+        }
+
+        for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)rule_p->derived_edge_states.size(); i++) {
+            if (base->edges[i]->solution != rule_p->derived_edge_states[i]) {
+                base->edges[i]->solution = rule_p->derived_edge_states[i];
+                push_edge(base->edges[i]);
+            }
+        }
+        delete base;
+        return;
+    }
+    delete base;
+}
+
+void Solver::loadRules(std::string file_name,
+                       std::ptrdiff_t base_size) {
+    std::ifstream file(file_name);
+    if (!file) {
+        ERROR("Can't open file of name: ", file_name);
+    }
+    std::string line;
+    std::getline(file, line);
+    if (line != "# Base size: " + std::to_string(base_size)) {
+        ERROR("File does not match base size: ", base_size);
+    }
+
+    std::getline(file, line);
+
+    while(line == "# Rule: "){
+        rule* new_rule = readRule(&file);
+        ready_rules.push_back(new_rule);
+        std::getline(file, line);
+    }
+    file.close();
+    LOG_DEBUG("Loaded ", ready_rules.size(), " rules from file: ", file_name);
+}
 
 void Solver::test() {
     rule_state* base = generateBase(2);

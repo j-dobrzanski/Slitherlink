@@ -40,6 +40,15 @@ typedef struct slitherlink_vertex {
     std::vector<std::ptrdiff_t> edge_ids;
     std::vector<slitherlink_edge*> edge_refs;
 
+    slitherlink_vertex() : id(-1), no_of_edges(0) {}
+
+    slitherlink_vertex(slitherlink_vertex* other) {
+        id = other->id;
+        no_of_edges = other->no_of_edges;
+        edge_ids = other->edge_ids;
+        edge_refs = other->edge_refs;
+    }
+
     friend std::ostream & operator<<(std::ostream& os, const slitherlink_vertex& vertex);
 } slitherlink_vertex;
 
@@ -50,6 +59,30 @@ typedef struct slitherlink_edge {
     slitherlink_vertex* vertex_refs[2];
     slitherlink_face* face_refs[2];
     slitherlink_edge_type solution;
+
+    slitherlink_edge() : id(-1), solution(EDGE_UNKNOWN) {
+        vertices[0] = -1;
+        vertices[1] = -1;
+        face_ids[0] = OUTER_FACE;
+        face_ids[1] = OUTER_FACE;
+        vertex_refs[0] = nullptr;
+        vertex_refs[1] = nullptr;
+        face_refs[0] = nullptr;
+        face_refs[1] = nullptr;
+    }
+
+    slitherlink_edge(slitherlink_edge* other) {
+        id = other->id;
+        vertices[0] = other->vertices[0];
+        vertices[1] = other->vertices[1];
+        face_ids[0] = other->face_ids[0];
+        face_ids[1] = other->face_ids[1];
+        vertex_refs[0] = other->vertex_refs[0];
+        vertex_refs[1] = other->vertex_refs[1];
+        face_refs[0] = other->face_refs[0];
+        face_refs[1] = other->face_refs[1];
+        solution = other->solution;
+    }
 
     friend std::ostream & operator<<(std::ostream& os, const slitherlink_edge& edge);
 } slitherlink_edge;
@@ -62,6 +95,18 @@ typedef struct slitherlink_face {
     std::vector<std::ptrdiff_t> face_ids;
     std::vector<slitherlink_edge*> edge_refs;
     std::vector<slitherlink_face*> face_refs;
+
+    slitherlink_face() : id(-1), value(0), no_of_edges(0) {}
+
+    slitherlink_face(slitherlink_face* other) {
+        id = other->id;
+        value = other->value;
+        no_of_edges = other->no_of_edges;
+        edge_ids = other->edge_ids;
+        face_ids = other->face_ids;
+        edge_refs = other->edge_refs;
+        face_refs = other->face_refs;
+    }
 
     friend std::ostream & operator<<(std::ostream& os, const slitherlink_face& face);
 } slitherlink_face;

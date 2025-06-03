@@ -1,5 +1,6 @@
 #include "../../model/model_CPP/api/slitherlink.hpp"
 
+#include <iostream>
 
 #ifndef SOLVER_HPP
 #define SOLVER_HPP
@@ -16,11 +17,13 @@ typedef struct solver_state {
     std::vector<bool> faces_solved;
     std::vector<bool> vertices_solved;
     std::vector<std::ptrdiff_t> edge_to_loop_part;
+    std::vector<slitherlink_edge_type> totaly_even_set;
     std::ptrdiff_t max_loop_part_id = -1;
     std::ptrdiff_t no_of_loop_parts = 0;
 } solver_state;
 
 typedef struct rule_state {
+    bool is_copied = false;
     std::ptrdiff_t base_size;
     std::ptrdiff_t no_of_vertices;
     std::ptrdiff_t no_of_edges;
@@ -32,7 +35,37 @@ typedef struct rule_state {
     rule_state* copy();
 
     ~rule_state();
+
 } rule_state;
+
+typedef struct statistics {
+    std::ptrdiff_t no_of_solutions;
+    std::ptrdiff_t no_of_guesses;
+    double total_time;
+    std::ptrdiff_t guesses_for_first_solution;
+    double time_for_first_solution;
+
+    statistics() : no_of_solutions(0),
+                   no_of_guesses(0),
+                   total_time(0.0),
+                   guesses_for_first_solution(0),
+                   time_for_first_solution(0.0) {}
+    
+    void reset() {
+        no_of_solutions = 0;
+        no_of_guesses = 0;
+        total_time = 0.0;
+        guesses_for_first_solution = 0;
+        time_for_first_solution = 0.0;
+    }
+    void print() {
+        std::cout << no_of_solutions << ", "
+                  << no_of_guesses << ", "
+                  << total_time << ", "
+                  << guesses_for_first_solution << ", "
+                  << time_for_first_solution << std::endl;
+    }
+} statistics;
 
 typedef struct rule {
     std::vector<std::ptrdiff_t> face_values;
@@ -46,18 +79,29 @@ class Solver {
         Solver();
         ~Solver();
 
-        void solvePuzzle(Slitherlink* slitherlink,
-                         std::vector<Slitherlink*>* slitherlink_solution);
+        void solvePuzzle(Slitherlink* new_slitherlink,
+                         bool use_rules,
+                         bool use_tes,
+                         std::vector<Slitherlink*>* slitherlink_solution,
+                         statistics* stats);
 
         void generateAndSaveRules(std::string file_name,
                                   std::ptrdiff_t base_size);
 
+        void refineAndSaveRules(std::string raw_rules_file_name,
+                                std::string refined_rules_file_name,
+                                std::ptrdiff_t base_size);
+
+        void loadRules(std::string file_name,
+                       std::ptrdiff_t base_size);
 
         void test();
     private:
 
         Slitherlink* original_slitherlink;
         Slitherlink* slitherlink;
+
+        std::vector<Slitherlink*>* slitherlink_solution;
 
         bool updateFaceEdges(std::ptrdiff_t face_id);
         
@@ -118,11 +162,62 @@ class Solver {
          * Generate, save, load and check all possible rules
          * for the puzzle
          */
+        std::vector<rule*> ready_rules;
+
         rule_state* generateBase(std::ptrdiff_t base_size);
 
         std::vector<rule*> generateRules(rule_state* base);
 
-};
+        void saveRule(std::ofstream* file,
+                      rule* rule_p);
+
+        rule* readRule(std::ifstream* file);
+
+        // apply rules to the face of slitherlink puzzle
+        void applyRules(std::vector<rule*> rules,
+                        slitherlink_face* face_p);
+
+        /**
+         * Totaly Even Sets
+         */
+        
+        // try out multiple solutions by using totaly even sets
+        std::vector<slitherlink_edge_type> totaly_even_set;
+        bool is_tes_correct;
+        
+        std::vector<bool> tes_faces_solved;
+        std::vector<bool> tes_vertices_solved;
+
+        // Used to get the baseline for tes
+        void initializeTes();
+
+        void updateTes();
+
+        void rotateOneTesEdge(std::ptrdiff_t edge_id);
+
+        void rotateAllTesEdges();
+
+        std::vector<std::pair<queue_item_type, std::ptrdiff_t>> tes_queue;
+
+        void push_tes(std::pair<queue_item_type, std::ptrdiff_t> item);
+
+        void push_tes_edge(slitherlink_edge* edge_p);
+
+        std::pair<queue_item_type, std::ptrdiff_t> pop_tes();
+
+        void updateVertex(slitherlink_vertex* vertex);
+
+        void updateFace(slitherlink_face* face_p);
+
+        bool isVertexSolvedInTes(slitherlink_vertex* vertex_p);
+        
+        bool isFaceSolvedInTes(slitherlink_face* face_p);
+        
+        bool isSolvedInTes();
+
+        bool applyTes();
+
+    };
 
 
 

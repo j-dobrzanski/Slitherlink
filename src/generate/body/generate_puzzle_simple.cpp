@@ -6,14 +6,6 @@
 #include "../../utilities/api/trace_lib.hpp"
 #include "../api/generate_puzzle.hpp"
 
-#define FACE_UNPROCESSED 0
-#define FACE_ACCEPTED 1
-#define FACE_REJECTED 2
-
-#define EDGE_UNPROCESSED 0
-#define EDGE_ACCEPTED 1
-#define EDGE_NOT_ACCEPTED 2
-
 std::ptrdiff_t getRandomFaceId(std::ptrdiff_t no_of_faces, std::mt19937 rng){
 
     std::uniform_int_distribution<int> uni(0, no_of_faces - 2);
@@ -49,8 +41,8 @@ std::ptrdiff_t getRandomFaceFromQueue(std::vector<std::ptrdiff_t>& face_queue, s
 void processAcceptedFace(Slitherlink* slitherlink,
                          std::ptrdiff_t face_id,
                          std::vector<std::ptrdiff_t>* face_queue,
-                         std::vector<int>* face_indicators,
-                         std::vector<int>* edge_indicators) {
+                         std::vector<std::ptrdiff_t>* face_indicators,
+                         std::vector<std::ptrdiff_t>* edge_indicators) {
     LOG_DEBUG("Processing accepted face: ", face_id);
     slitherlink_face* face = slitherlink->faces[face_id];
     (*face_indicators)[face_id] = FACE_ACCEPTED;
@@ -72,12 +64,12 @@ void processAcceptedFace(Slitherlink* slitherlink,
             LOG_DEBUG("Face added to queue: ", new_face_id);
         }
         else {
-            (*edge_indicators)[edge_id] = EDGE_NOT_ACCEPTED;
+            (*edge_indicators)[edge_id] = EDGE_REJECTED;
         }
     }
 }
 
-void logIndicators(std::vector<int>* indicators, std::string name){
+void logIndicators(std::vector<std::ptrdiff_t>* indicators, std::string name){
     LOG_DEBUG(name, ":");
     for (std::size_t i = 0; i < indicators->size(); ++i) {
         if ((*indicators)[i] == FACE_ACCEPTED ||
@@ -88,7 +80,7 @@ void logIndicators(std::vector<int>* indicators, std::string name){
     (void)name;
 }
 
-void createRandomLoop(Slitherlink* slitherlink, std::vector<int>* face_indicators, std::vector<int>* edge_indicators) {
+void createRandomLoop(Slitherlink* slitherlink, std::vector<std::ptrdiff_t>* face_indicators, std::vector<std::ptrdiff_t>* edge_indicators) {
     LOG_DEBUG("Creating random loop");
     std::vector<std::ptrdiff_t> face_queue = std::vector<std::ptrdiff_t>();
     
@@ -132,13 +124,13 @@ void createRandomLoop(Slitherlink* slitherlink, std::vector<int>* face_indicator
     logIndicators(edge_indicators, "Edge indicators");
 }
 
-void addFaceValues(Slitherlink* slitherlink, std::vector<int>* edge_indicators) {
+void addFaceValues(Slitherlink* slitherlink, std::vector<std::ptrdiff_t> edge_indicators) {
     LOG_DEBUG("Adding face values");
     for (std::ptrdiff_t i = 0; i < slitherlink->no_of_faces - 1; ++i) {
         std::ptrdiff_t no_of_chosen_edges = 0;
         for (std::ptrdiff_t j = 0; j < slitherlink->faces[i]->no_of_edges; ++j) {
             std::ptrdiff_t edge_id = slitherlink->faces[i]->edge_ids[j];
-            if ((*edge_indicators)[edge_id] == EDGE_ACCEPTED) {
+            if (edge_indicators[edge_id] == EDGE_ACCEPTED) {
                 no_of_chosen_edges++;
             }
         }
@@ -146,10 +138,10 @@ void addFaceValues(Slitherlink* slitherlink, std::vector<int>* edge_indicators) 
     }
 }
 
-void addEdgeValues(Slitherlink* slitherlink, std::vector<int>* edge_indicators) {
+void addEdgeValues(Slitherlink* slitherlink, std::vector<std::ptrdiff_t> edge_indicators) {
     LOG_DEBUG("Adding edge values");
     for (std::ptrdiff_t i = 0; i < slitherlink->no_of_edges; ++i) {
-        if ((*edge_indicators)[i] == EDGE_ACCEPTED) {
+        if (edge_indicators[i] == EDGE_ACCEPTED) {
             slitherlink->edges[i]->solution = EDGE_IN_SOLUTION;
         }
         else {
@@ -160,17 +152,17 @@ void addEdgeValues(Slitherlink* slitherlink, std::vector<int>* edge_indicators) 
 
 Slitherlink* generatePuzzleSimple(std::ptrdiff_t size){
     Slitherlink* slitherlink = new Slitherlink(size);
-    std::vector<int> face_indicators = std::vector<int>(slitherlink->no_of_faces, FACE_UNPROCESSED);
-    std::vector<int> edge_indicators = std::vector<int>(slitherlink->no_of_edges, EDGE_UNPROCESSED);
+    std::vector<std::ptrdiff_t> face_indicators = std::vector<std::ptrdiff_t>(slitherlink->no_of_faces, FACE_UNPROCESSED);
+    std::vector<std::ptrdiff_t> edge_indicators = std::vector<std::ptrdiff_t>(slitherlink->no_of_edges, EDGE_UNPROCESSED);
     
     // create a random loop
     createRandomLoop(slitherlink, &face_indicators, &edge_indicators);
 
     // add values to the faces
-    addFaceValues(slitherlink, &edge_indicators);
+    addFaceValues(slitherlink, edge_indicators);
 
     // add values to the edges
-    addEdgeValues(slitherlink, &edge_indicators);
+    addEdgeValues(slitherlink, edge_indicators);
 
     return slitherlink;
 }

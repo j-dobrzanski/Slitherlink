@@ -108,10 +108,10 @@ def plotPuzzle(Slitherlink: dict, file_name: str = "test.png"):
     for edge in Slitherlink["edges"]:
         vertex_1 = Slitherlink["vertices"][edge["vertex_id_1"]]
         vertex_2 = Slitherlink["vertices"][edge["vertex_id_2"]]
-        if SHOW_EDGES and edge["solution"] == 0:
+        if SHOW_EDGES and edge["solution"] == 1:
             style = "-"
             col = "green"
-        elif SHOW_EDGES and edge["solution"] == 2:
+        elif SHOW_EDGES and edge["solution"] == 0:
             style = ":"
             col = "grey"
         else:

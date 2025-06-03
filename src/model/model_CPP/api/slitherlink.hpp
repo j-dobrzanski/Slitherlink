@@ -53,6 +53,8 @@ class Slitherlink {
         bool checkCorrectness();
 
         void clearSolution();
+
+        std::ptrdiff_t getNoOfLayers();
 };
 
 #endif // SLITHERLINK_H

@@ -4,8 +4,8 @@
 #ifndef TRACE_LIB_H
 #define TRACE_LIB_H
 
-// #define ERROR(...); line_wrapper_error(__FILE__, __func__, __LINE__, __VA_ARGS__);
-#define ERROR(...);
+#define ERROR(...); line_wrapper_error(__FILE__, __func__, __LINE__, __VA_ARGS__);
+// #define ERROR(...);
 
 
 #define LOG(...); line_wrapper_log(__FILE__, __func__, __LINE__, __VA_ARGS__);

@@ -783,13 +783,27 @@ inline void faceLayer(std::ptrdiff_t layer_no,
                       std::ptrdiff_t* last_id,
                       std::ptrdiff_t size) {
     std::ptrdiff_t id = *last_id;
-    if (layer_no == 0) { // special case for first layer
+    if (layer_no == 0 && size == 1) { // special case for first layer
         faces[0] = new slitherlink_face{
             .id = 0,
             .value = 0,
             .no_of_edges = 6,
             .edge_ids = {0, 1, 2, 3, 4, 5},
-            .face_ids = {OUTER_FACE, OUTER_FACE, OUTER_FACE, OUTER_FACE, OUTER_FACE, OUTER_FACE},
+            // .face_ids = {OUTER_FACE, OUTER_FACE, OUTER_FACE, OUTER_FACE, OUTER_FACE, OUTER_FACE},
+            .face_ids = {},
+            .edge_refs = {},
+            .face_refs = {},
+        };
+        id = 1;
+    }
+    else if (layer_no == 0 && size != 1) { // special case for first layer
+        faces[0] = new slitherlink_face{
+            .id = 0,
+            .value = 0,
+            .no_of_edges = 6,
+            .edge_ids = {0, 1, 2, 3, 4, 5},
+            // .face_ids = {1, 2, 3, 4, 5, 6},
+            .face_ids = {},
             .edge_refs = {},
             .face_refs = {},
         };
@@ -799,9 +813,9 @@ inline void faceLayer(std::ptrdiff_t layer_no,
         std::ptrdiff_t lower_edge_curr_id = getNoOfEdges(layer_no - 1) + (layer_no - 1) * 6;
         std::ptrdiff_t middle_edge_curr_id = getNoOfEdges(layer_no);
         std::ptrdiff_t upper_edge_curr_id = getNoOfEdges(layer_no) + layer_no * 6;
-        std::ptrdiff_t lower_face_curr_id = getNoOfFaces(layer_no - 1);
-        std::ptrdiff_t middle_face_curr_id = getNoOfFaces(layer_no);
-        std::ptrdiff_t upper_face_curr_id = getNoOfFaces(layer_no + 1);
+        // std::ptrdiff_t lower_face_curr_id = getNoOfFaces(layer_no - 1);
+        // std::ptrdiff_t middle_face_curr_id = getNoOfFaces(layer_no);
+        // std::ptrdiff_t upper_face_curr_id = getNoOfFaces(layer_no + 1);
 
         // first half of upper side
         if (layer_no % 2 == 0) {
@@ -814,15 +828,15 @@ inline void faceLayer(std::ptrdiff_t layer_no,
             std::ptrdiff_t edge_sixth_id = upper_edge_curr_id;
             upper_edge_curr_id++;
 
-            std::ptrdiff_t face_first_id =  middle_face_curr_id - 1;
-            std::ptrdiff_t face_second_id = upper_face_curr_id - 1;
-            std::ptrdiff_t face_third_id =  OUTER_FACE;
-            std::ptrdiff_t face_fourth_id = lower_face_curr_id;
-            lower_face_curr_id++;
-            std::ptrdiff_t face_fifth_id =  middle_face_curr_id;
-            middle_face_curr_id++;
-            std::ptrdiff_t face_sixth_id = OUTER_FACE;
-            upper_face_curr_id++;
+            // std::ptrdiff_t face_first_id =  middle_face_curr_id - 1;
+            // std::ptrdiff_t face_second_id = upper_face_curr_id - 1;
+            // std::ptrdiff_t face_third_id =  OUTER_FACE;
+            // std::ptrdiff_t face_fourth_id = lower_face_curr_id;
+            // lower_face_curr_id++;
+            // std::ptrdiff_t face_fifth_id =  middle_face_curr_id;
+            // middle_face_curr_id++;
+            // std::ptrdiff_t face_sixth_id = OUTER_FACE;
+            // upper_face_curr_id++;
             faces[id] = new slitherlink_face{
                 .id = id,
                 .value = 0,
@@ -835,13 +849,14 @@ inline void faceLayer(std::ptrdiff_t layer_no,
                     edge_fifth_id,
                     edge_sixth_id
                 },
-                .face_ids = {
-                    face_first_id,
-                    face_second_id,
-                    face_third_id,
-                    face_fourth_id,
-                    face_fifth_id,
-                    face_sixth_id},
+                // .face_ids = {
+                //     face_first_id,
+                //     face_second_id,
+                //     face_third_id,
+                //     face_fourth_id,
+                //     face_fifth_id,
+                //     face_sixth_id},
+                .face_ids = {},
                 .edge_refs = {},
                 .face_refs = {},
             };
@@ -860,15 +875,15 @@ inline void faceLayer(std::ptrdiff_t layer_no,
             std::ptrdiff_t edge_sixth_id = upper_edge_curr_id;
             upper_edge_curr_id++;
 
-            std::ptrdiff_t face_first_id =  lower_face_curr_id;
-            lower_face_curr_id++;
-            std::ptrdiff_t face_second_id = upper_face_curr_id - 1;
-            std::ptrdiff_t face_third_id =  OUTER_FACE;
-            upper_face_curr_id++;
-            std::ptrdiff_t face_fourth_id = lower_face_curr_id;
-            std::ptrdiff_t face_fifth_id =  middle_face_curr_id + 1;
-            middle_face_curr_id++;
-            std::ptrdiff_t face_sixth_id = OUTER_FACE;
+            // std::ptrdiff_t face_first_id =  lower_face_curr_id;
+            // lower_face_curr_id++;
+            // std::ptrdiff_t face_second_id = upper_face_curr_id - 1;
+            // std::ptrdiff_t face_third_id =  OUTER_FACE;
+            // upper_face_curr_id++;
+            // std::ptrdiff_t face_fourth_id = lower_face_curr_id;
+            // std::ptrdiff_t face_fifth_id =  middle_face_curr_id + 1;
+            // middle_face_curr_id++;
+            // std::ptrdiff_t face_sixth_id = OUTER_FACE;
             faces[id] = new slitherlink_face{
                 .id = id,
                 .value = 0,
@@ -881,13 +896,14 @@ inline void faceLayer(std::ptrdiff_t layer_no,
                     edge_fifth_id,
                     edge_sixth_id
                 },
-                .face_ids = {
-                    face_first_id,
-                    face_second_id,
-                    face_third_id,
-                    face_fourth_id,
-                    face_fifth_id,
-                    face_sixth_id},
+                // .face_ids = {
+                //     face_first_id,
+                //     face_second_id,
+                //     face_third_id,
+                //     face_fourth_id,
+                //     face_fifth_id,
+                //     face_sixth_id},
+                .face_ids = {},
                 .edge_refs = {},
                 .face_refs = {},
             };
@@ -907,15 +923,15 @@ inline void faceLayer(std::ptrdiff_t layer_no,
             std::ptrdiff_t edge_sixth_id = upper_edge_curr_id;
             upper_edge_curr_id++;
 
-            std::ptrdiff_t face_first_id =  lower_face_curr_id;
-            lower_face_curr_id++;
-            std::ptrdiff_t face_second_id = middle_face_curr_id - 1;
-            std::ptrdiff_t face_third_id = OUTER_FACE;
-            upper_face_curr_id++;
-            std::ptrdiff_t face_fourth_id = lower_face_curr_id;
-            std::ptrdiff_t face_fifth_id = middle_face_curr_id + 1;
-            middle_face_curr_id++;
-            std::ptrdiff_t face_sixth_id = OUTER_FACE;
+            // std::ptrdiff_t face_first_id =  lower_face_curr_id;
+            // lower_face_curr_id++;
+            // std::ptrdiff_t face_second_id = middle_face_curr_id - 1;
+            // std::ptrdiff_t face_third_id = OUTER_FACE;
+            // upper_face_curr_id++;
+            // std::ptrdiff_t face_fourth_id = lower_face_curr_id;
+            // std::ptrdiff_t face_fifth_id = middle_face_curr_id + 1;
+            // middle_face_curr_id++;
+            // std::ptrdiff_t face_sixth_id = OUTER_FACE;
             faces[id] = new slitherlink_face{
                 .id = id,
                 .value = 0,
@@ -928,14 +944,15 @@ inline void faceLayer(std::ptrdiff_t layer_no,
                     edge_fifth_id,
                     edge_sixth_id
                 },
-                .face_ids = {
-                    face_first_id,
-                    face_second_id,
-                    face_third_id,
-                    face_fourth_id,
-                    face_fifth_id,
-                    face_sixth_id
-                },
+                // .face_ids = {
+                //     face_first_id,
+                //     face_second_id,
+                //     face_third_id,
+                //     face_fourth_id,
+                //     face_fifth_id,
+                //     face_sixth_id
+                // },
+                .face_ids = {},
                 .edge_refs = {},
                 .face_refs = {},
             };
@@ -954,15 +971,15 @@ inline void faceLayer(std::ptrdiff_t layer_no,
         std::ptrdiff_t edge_sixth_id = upper_edge_curr_id;
         upper_edge_curr_id++;
 
-        std::ptrdiff_t face_first_id =  lower_face_curr_id;
-        std::ptrdiff_t face_second_id = middle_face_curr_id - 1;
-        std::ptrdiff_t face_third_id = OUTER_FACE;
-        upper_face_curr_id++;
-        std::ptrdiff_t face_fourth_id = middle_face_curr_id + 1;
-        middle_face_curr_id++;
-        std::ptrdiff_t face_fifth_id = OUTER_FACE;
-        upper_face_curr_id++;
-        std::ptrdiff_t face_sixth_id = OUTER_FACE;
+        // std::ptrdiff_t face_first_id =  lower_face_curr_id;
+        // std::ptrdiff_t face_second_id = middle_face_curr_id - 1;
+        // std::ptrdiff_t face_third_id = OUTER_FACE;
+        // upper_face_curr_id++;
+        // std::ptrdiff_t face_fourth_id = middle_face_curr_id + 1;
+        // middle_face_curr_id++;
+        // std::ptrdiff_t face_fifth_id = OUTER_FACE;
+        // upper_face_curr_id++;
+        // std::ptrdiff_t face_sixth_id = OUTER_FACE;
         faces[id] = new slitherlink_face{
             .id = id,
             .value = 0,
@@ -975,14 +992,15 @@ inline void faceLayer(std::ptrdiff_t layer_no,
                 edge_fifth_id,
                 edge_sixth_id
             },
-            .face_ids = {
-                face_first_id,
-                face_second_id,
-                face_third_id,
-                face_fourth_id,
-                face_fifth_id,
-                face_sixth_id
-            },
+            // .face_ids = {
+            //     face_first_id,
+            //     face_second_id,
+            //     face_third_id,
+            //     face_fourth_id,
+            //     face_fifth_id,
+            //     face_sixth_id
+            // },
+            .face_ids = {},
             .edge_refs = {},
             .face_refs = {},
         };
@@ -1003,15 +1021,15 @@ inline void faceLayer(std::ptrdiff_t layer_no,
                 std::ptrdiff_t edge_sixth_id = upper_edge_curr_id;
                 upper_edge_curr_id++;
     
-                std::ptrdiff_t face_first_id =  lower_face_curr_id;
-                lower_face_curr_id++;
-                std::ptrdiff_t face_second_id = middle_face_curr_id - 1;
-                std::ptrdiff_t face_third_id = OUTER_FACE;
-                upper_face_curr_id++;
-                std::ptrdiff_t face_fourth_id = lower_face_curr_id;
-                std::ptrdiff_t face_fifth_id = middle_face_curr_id + 1;
-                middle_face_curr_id++;
-                std::ptrdiff_t face_sixth_id = OUTER_FACE;
+                // std::ptrdiff_t face_first_id =  lower_face_curr_id;
+                // lower_face_curr_id++;
+                // std::ptrdiff_t face_second_id = middle_face_curr_id - 1;
+                // std::ptrdiff_t face_third_id = OUTER_FACE;
+                // upper_face_curr_id++;
+                // std::ptrdiff_t face_fourth_id = lower_face_curr_id;
+                // std::ptrdiff_t face_fifth_id = middle_face_curr_id + 1;
+                // middle_face_curr_id++;
+                // std::ptrdiff_t face_sixth_id = OUTER_FACE;
                 faces[id] = new slitherlink_face{
                     .id = id,
                     .value = 0,
@@ -1024,14 +1042,15 @@ inline void faceLayer(std::ptrdiff_t layer_no,
                         edge_fifth_id,
                         edge_sixth_id
                     },
-                    .face_ids = {
-                        face_first_id,
-                        face_second_id,
-                        face_third_id,
-                        face_fourth_id,
-                        face_fifth_id,
-                        face_sixth_id
-                    },
+                    // .face_ids = {
+                    //     face_first_id,
+                    //     face_second_id,
+                    //     face_third_id,
+                    //     face_fourth_id,
+                    //     face_fifth_id,
+                    //     face_sixth_id
+                    // },
+                    .face_ids = {},
                     .edge_refs = {},
                     .face_refs = {},
                 };
@@ -1050,15 +1069,15 @@ inline void faceLayer(std::ptrdiff_t layer_no,
                 std::ptrdiff_t edge_sixth_id = upper_edge_curr_id;
                 upper_edge_curr_id++;
 
-                std::ptrdiff_t face_first_id =  lower_face_curr_id;
-                std::ptrdiff_t face_second_id = middle_face_curr_id - 1;
-                std::ptrdiff_t face_third_id = OUTER_FACE;
-                upper_face_curr_id++;
-                std::ptrdiff_t face_fourth_id = middle_face_curr_id + 1;
-                middle_face_curr_id++;
-                std::ptrdiff_t face_fifth_id = OUTER_FACE;
-                upper_face_curr_id++;
-                std::ptrdiff_t face_sixth_id = OUTER_FACE;
+                // std::ptrdiff_t face_first_id =  lower_face_curr_id;
+                // std::ptrdiff_t face_second_id = middle_face_curr_id - 1;
+                // std::ptrdiff_t face_third_id = OUTER_FACE;
+                // upper_face_curr_id++;
+                // std::ptrdiff_t face_fourth_id = middle_face_curr_id + 1;
+                // middle_face_curr_id++;
+                // std::ptrdiff_t face_fifth_id = OUTER_FACE;
+                // upper_face_curr_id++;
+                // std::ptrdiff_t face_sixth_id = OUTER_FACE;
                 faces[id] = new slitherlink_face{
                     .id = id,
                     .value = 0,
@@ -1071,14 +1090,15 @@ inline void faceLayer(std::ptrdiff_t layer_no,
                         edge_fifth_id,
                         edge_sixth_id
                     },
-                    .face_ids = {
-                        face_first_id,
-                        face_second_id,
-                        face_third_id,
-                        face_fourth_id,
-                        face_fifth_id,
-                        face_sixth_id
-                    },
+                    // .face_ids = {
+                    //     face_first_id,
+                    //     face_second_id,
+                    //     face_third_id,
+                    //     face_fourth_id,
+                    //     face_fifth_id,
+                    //     face_sixth_id
+                    // },
+                    .face_ids = {},
                     .edge_refs = {},
                     .face_refs = {},
                 };
@@ -1100,15 +1120,15 @@ inline void faceLayer(std::ptrdiff_t layer_no,
             std::ptrdiff_t edge_sixth_id = upper_edge_curr_id;
             upper_edge_curr_id++;
 
-            std::ptrdiff_t face_first_id =  lower_face_curr_id;
-            lower_face_curr_id++;
-            std::ptrdiff_t face_second_id = middle_face_curr_id - 1;
-            std::ptrdiff_t face_third_id = OUTER_FACE;
-            upper_face_curr_id++;
-            std::ptrdiff_t face_fourth_id = lower_face_curr_id;
-            std::ptrdiff_t face_fifth_id = middle_face_curr_id + 1;
-            middle_face_curr_id++;
-            std::ptrdiff_t face_sixth_id = OUTER_FACE;
+            // std::ptrdiff_t face_first_id =  lower_face_curr_id;
+            // lower_face_curr_id++;
+            // std::ptrdiff_t face_second_id = middle_face_curr_id - 1;
+            // std::ptrdiff_t face_third_id = OUTER_FACE;
+            // upper_face_curr_id++;
+            // std::ptrdiff_t face_fourth_id = lower_face_curr_id;
+            // std::ptrdiff_t face_fifth_id = middle_face_curr_id + 1;
+            // middle_face_curr_id++;
+            // std::ptrdiff_t face_sixth_id = OUTER_FACE;
             faces[id] = new slitherlink_face{
                 .id = id,
                 .value = 0,
@@ -1121,14 +1141,15 @@ inline void faceLayer(std::ptrdiff_t layer_no,
                     edge_fifth_id,
                     edge_sixth_id
                 },
-                .face_ids = {
-                    face_first_id,
-                    face_second_id,
-                    face_third_id,
-                    face_fourth_id,
-                    face_fifth_id,
-                    face_sixth_id
-                },
+                // .face_ids = {
+                //     face_first_id,
+                //     face_second_id,
+                //     face_third_id,
+                //     face_fourth_id,
+                //     face_fifth_id,
+                //     face_sixth_id
+                // },
+                .face_ids = {},
                 .edge_refs = {},
                 .face_refs = {},
             };
@@ -1141,28 +1162,29 @@ inline void faceLayer(std::ptrdiff_t layer_no,
         middle_edge_curr_id++;
         edge_third_id =  upper_edge_curr_id;
         upper_edge_curr_id++;
-        edge_fourth_id = layer_no != 2 ?
-                            lower_edge_curr_id :
-                            upper_edge_curr_id;
-        if (layer_no == 2) {
+        if (layer_no == 1 || layer_no == 2) {
+            edge_fourth_id = upper_edge_curr_id;
             upper_edge_curr_id++;
         }
-        lower_edge_curr_id++;
+        else {
+            edge_fourth_id = lower_edge_curr_id;
+            lower_edge_curr_id++;
+        }
         edge_fifth_id = layer_no % 2 != 0 ?
                             getNoOfEdges(layer_no) :
                             middle_edge_curr_id;
         edge_sixth_id = upper_edge_curr_id;
         upper_edge_curr_id++;
 
-        face_first_id =  lower_face_curr_id;
-        lower_face_curr_id++;
-        face_second_id = middle_face_curr_id - 1;
-        face_third_id = OUTER_FACE;
-        upper_face_curr_id++;
-        face_fourth_id = lower_face_curr_id;
-        face_fifth_id = getNoOfFaces(layer_no);
-        middle_face_curr_id++;
-        face_sixth_id = OUTER_FACE;
+        // face_first_id =  lower_face_curr_id;
+        // lower_face_curr_id++;
+        // face_second_id = middle_face_curr_id - 1;
+        // face_third_id = OUTER_FACE;
+        // upper_face_curr_id++;
+        // face_fourth_id = lower_face_curr_id;
+        // face_fifth_id = getNoOfFaces(layer_no);
+        // middle_face_curr_id++;
+        // face_sixth_id = OUTER_FACE;
         faces[id] = new slitherlink_face{
             .id = id,
             .value = 0,
@@ -1175,14 +1197,15 @@ inline void faceLayer(std::ptrdiff_t layer_no,
                 edge_fifth_id,
                 edge_sixth_id
             },
-            .face_ids = {
-                face_first_id,
-                face_second_id,
-                face_third_id,
-                face_fourth_id,
-                face_fifth_id,
-                face_sixth_id
-            },
+            // .face_ids = {
+            //     face_first_id,
+            //     face_second_id,
+            //     face_third_id,
+            //     face_fourth_id,
+            //     face_fifth_id,
+            //     face_sixth_id
+            // },
+            .face_ids = {},
             .edge_refs = {},
             .face_refs = {},
         };
@@ -1197,9 +1220,9 @@ inline void faceLayer(std::ptrdiff_t layer_no,
         std::ptrdiff_t lower_edge_curr_id = getNoOfEdges(layer_no - 1) + (layer_no - 1) * 6;
         std::ptrdiff_t middle_edge_curr_id = getNoOfEdges(layer_no);
         std::ptrdiff_t upper_edge_curr_id = getNoOfEdges(layer_no) + layer_no * 6;
-        std::ptrdiff_t lower_face_curr_id = getNoOfFaces(layer_no - 1);
-        std::ptrdiff_t middle_face_curr_id = getNoOfFaces(layer_no);
-        std::ptrdiff_t upper_face_curr_id = getNoOfFaces(layer_no + 1);
+        // std::ptrdiff_t lower_face_curr_id = getNoOfFaces(layer_no - 1);
+        // std::ptrdiff_t middle_face_curr_id = getNoOfFaces(layer_no);
+        // std::ptrdiff_t upper_face_curr_id = getNoOfFaces(layer_no + 1);
 
         // first half of upper side
         if (layer_no % 2 == 0) {
@@ -1212,15 +1235,15 @@ inline void faceLayer(std::ptrdiff_t layer_no,
             std::ptrdiff_t edge_sixth_id = upper_edge_curr_id;
             upper_edge_curr_id++;
 
-            std::ptrdiff_t face_first_id =  middle_face_curr_id - 1;
-            std::ptrdiff_t face_second_id = upper_face_curr_id - 1;
-            std::ptrdiff_t face_third_id =  getNoOfFaces(layer_no + 2) - 1;
-            std::ptrdiff_t face_fourth_id = lower_face_curr_id;
-            lower_face_curr_id++;
-            std::ptrdiff_t face_fifth_id =  middle_face_curr_id;
-            middle_face_curr_id++;
-            std::ptrdiff_t face_sixth_id = upper_face_curr_id;
-            upper_face_curr_id++;
+            // std::ptrdiff_t face_first_id =  middle_face_curr_id - 1;
+            // std::ptrdiff_t face_second_id = upper_face_curr_id - 1;
+            // std::ptrdiff_t face_third_id =  getNoOfFaces(layer_no + 2) - 1;
+            // std::ptrdiff_t face_fourth_id = lower_face_curr_id;
+            // lower_face_curr_id++;
+            // std::ptrdiff_t face_fifth_id =  middle_face_curr_id;
+            // middle_face_curr_id++;
+            // std::ptrdiff_t face_sixth_id = upper_face_curr_id;
+            // upper_face_curr_id++;
             faces[id] = new slitherlink_face{
                 .id = id,
                 .value = 0,
@@ -1233,13 +1256,14 @@ inline void faceLayer(std::ptrdiff_t layer_no,
                     edge_fifth_id,
                     edge_sixth_id
                 },
-                .face_ids = {
-                    face_first_id,
-                    face_second_id,
-                    face_third_id,
-                    face_fourth_id,
-                    face_fifth_id,
-                    face_sixth_id},
+                // .face_ids = {
+                //     face_first_id,
+                //     face_second_id,
+                //     face_third_id,
+                //     face_fourth_id,
+                //     face_fifth_id,
+                //     face_sixth_id},
+                .face_ids = {},
                 .edge_refs = {},
                 .face_refs = {},
             };
@@ -1258,15 +1282,15 @@ inline void faceLayer(std::ptrdiff_t layer_no,
             std::ptrdiff_t edge_sixth_id = upper_edge_curr_id;
             upper_edge_curr_id++;
 
-            std::ptrdiff_t face_first_id =  lower_face_curr_id;
-            lower_face_curr_id++;
-            std::ptrdiff_t face_second_id = upper_face_curr_id - 1;
-            std::ptrdiff_t face_third_id =  upper_face_curr_id;
-            upper_face_curr_id++;
-            std::ptrdiff_t face_fourth_id = lower_face_curr_id;
-            std::ptrdiff_t face_fifth_id =  middle_face_curr_id + 1;
-            middle_face_curr_id++;
-            std::ptrdiff_t face_sixth_id = upper_face_curr_id;
+            // std::ptrdiff_t face_first_id =  lower_face_curr_id;
+            // lower_face_curr_id++;
+            // std::ptrdiff_t face_second_id = upper_face_curr_id - 1;
+            // std::ptrdiff_t face_third_id =  upper_face_curr_id;
+            // upper_face_curr_id++;
+            // std::ptrdiff_t face_fourth_id = lower_face_curr_id;
+            // std::ptrdiff_t face_fifth_id =  middle_face_curr_id + 1;
+            // middle_face_curr_id++;
+            // std::ptrdiff_t face_sixth_id = upper_face_curr_id;
             faces[id] = new slitherlink_face{
                 .id = id,
                 .value = 0,
@@ -1279,13 +1303,14 @@ inline void faceLayer(std::ptrdiff_t layer_no,
                     edge_fifth_id,
                     edge_sixth_id
                 },
-                .face_ids = {
-                    face_first_id,
-                    face_second_id,
-                    face_third_id,
-                    face_fourth_id,
-                    face_fifth_id,
-                    face_sixth_id},
+                // .face_ids = {
+                //     face_first_id,
+                //     face_second_id,
+                //     face_third_id,
+                //     face_fourth_id,
+                //     face_fifth_id,
+                //     face_sixth_id},
+                .face_ids = {},
                 .edge_refs = {},
                 .face_refs = {},
             };
@@ -1305,15 +1330,15 @@ inline void faceLayer(std::ptrdiff_t layer_no,
             std::ptrdiff_t edge_sixth_id = upper_edge_curr_id;
             upper_edge_curr_id++;
 
-            std::ptrdiff_t face_first_id =  lower_face_curr_id;
-            lower_face_curr_id++;
-            std::ptrdiff_t face_second_id = middle_face_curr_id - 1;
-            std::ptrdiff_t face_third_id = upper_face_curr_id;
-            upper_face_curr_id++;
-            std::ptrdiff_t face_fourth_id = lower_face_curr_id;
-            std::ptrdiff_t face_fifth_id = middle_face_curr_id + 1;
-            middle_face_curr_id++;
-            std::ptrdiff_t face_sixth_id = upper_face_curr_id;
+            // std::ptrdiff_t face_first_id =  lower_face_curr_id;
+            // lower_face_curr_id++;
+            // std::ptrdiff_t face_second_id = middle_face_curr_id - 1;
+            // std::ptrdiff_t face_third_id = upper_face_curr_id;
+            // upper_face_curr_id++;
+            // std::ptrdiff_t face_fourth_id = lower_face_curr_id;
+            // std::ptrdiff_t face_fifth_id = middle_face_curr_id + 1;
+            // middle_face_curr_id++;
+            // std::ptrdiff_t face_sixth_id = upper_face_curr_id;
             faces[id] = new slitherlink_face{
                 .id = id,
                 .value = 0,
@@ -1326,14 +1351,15 @@ inline void faceLayer(std::ptrdiff_t layer_no,
                     edge_fifth_id,
                     edge_sixth_id
                 },
-                .face_ids = {
-                    face_first_id,
-                    face_second_id,
-                    face_third_id,
-                    face_fourth_id,
-                    face_fifth_id,
-                    face_sixth_id
-                },
+                // .face_ids = {
+                //     face_first_id,
+                //     face_second_id,
+                //     face_third_id,
+                //     face_fourth_id,
+                //     face_fifth_id,
+                //     face_sixth_id
+                // },
+                .face_ids = {},
                 .edge_refs = {},
                 .face_refs = {},
             };
@@ -1352,15 +1378,15 @@ inline void faceLayer(std::ptrdiff_t layer_no,
         std::ptrdiff_t edge_sixth_id = upper_edge_curr_id;
         upper_edge_curr_id++;
 
-        std::ptrdiff_t face_first_id =  lower_face_curr_id;
-        std::ptrdiff_t face_second_id = middle_face_curr_id - 1;
-        std::ptrdiff_t face_third_id = upper_face_curr_id;
-        upper_face_curr_id++;
-        std::ptrdiff_t face_fourth_id = middle_face_curr_id + 1;
-        middle_face_curr_id++;
-        std::ptrdiff_t face_fifth_id = upper_face_curr_id;
-        upper_face_curr_id++;
-        std::ptrdiff_t face_sixth_id = upper_face_curr_id;
+        // std::ptrdiff_t face_first_id =  lower_face_curr_id;
+        // std::ptrdiff_t face_second_id = middle_face_curr_id - 1;
+        // std::ptrdiff_t face_third_id = upper_face_curr_id;
+        // upper_face_curr_id++;
+        // std::ptrdiff_t face_fourth_id = middle_face_curr_id + 1;
+        // middle_face_curr_id++;
+        // std::ptrdiff_t face_fifth_id = upper_face_curr_id;
+        // upper_face_curr_id++;
+        // std::ptrdiff_t face_sixth_id = upper_face_curr_id;
         faces[id] = new slitherlink_face{
             .id = id,
             .value = 0,
@@ -1373,14 +1399,15 @@ inline void faceLayer(std::ptrdiff_t layer_no,
                 edge_fifth_id,
                 edge_sixth_id
             },
-            .face_ids = {
-                face_first_id,
-                face_second_id,
-                face_third_id,
-                face_fourth_id,
-                face_fifth_id,
-                face_sixth_id
-            },
+            // .face_ids = {
+            //     face_first_id,
+            //     face_second_id,
+            //     face_third_id,
+            //     face_fourth_id,
+            //     face_fifth_id,
+            //     face_sixth_id
+            // },
+            .face_ids = {},
             .edge_refs = {},
             .face_refs = {},
         };
@@ -1402,15 +1429,15 @@ inline void faceLayer(std::ptrdiff_t layer_no,
                 std::ptrdiff_t edge_sixth_id = upper_edge_curr_id;
                 upper_edge_curr_id++;
     
-                std::ptrdiff_t face_first_id =  lower_face_curr_id;
-                lower_face_curr_id++;
-                std::ptrdiff_t face_second_id = middle_face_curr_id - 1;
-                std::ptrdiff_t face_third_id = upper_face_curr_id;
-                upper_face_curr_id++;
-                std::ptrdiff_t face_fourth_id = lower_face_curr_id;
-                std::ptrdiff_t face_fifth_id = middle_face_curr_id + 1;
-                middle_face_curr_id++;
-                std::ptrdiff_t face_sixth_id = upper_face_curr_id;
+                // std::ptrdiff_t face_first_id =  lower_face_curr_id;
+                // lower_face_curr_id++;
+                // std::ptrdiff_t face_second_id = middle_face_curr_id - 1;
+                // std::ptrdiff_t face_third_id = upper_face_curr_id;
+                // upper_face_curr_id++;
+                // std::ptrdiff_t face_fourth_id = lower_face_curr_id;
+                // std::ptrdiff_t face_fifth_id = middle_face_curr_id + 1;
+                // middle_face_curr_id++;
+                // std::ptrdiff_t face_sixth_id = upper_face_curr_id;
                 faces[id] = new slitherlink_face{
                     .id = id,
                     .value = 0,
@@ -1423,14 +1450,15 @@ inline void faceLayer(std::ptrdiff_t layer_no,
                         edge_fifth_id,
                         edge_sixth_id
                     },
-                    .face_ids = {
-                        face_first_id,
-                        face_second_id,
-                        face_third_id,
-                        face_fourth_id,
-                        face_fifth_id,
-                        face_sixth_id
-                    },
+                    // .face_ids = {
+                    //     face_first_id,
+                    //     face_second_id,
+                    //     face_third_id,
+                    //     face_fourth_id,
+                    //     face_fifth_id,
+                    //     face_sixth_id
+                    // },
+                    .face_ids = {},
                     .edge_refs = {},
                     .face_refs = {},
                 };
@@ -1450,15 +1478,15 @@ inline void faceLayer(std::ptrdiff_t layer_no,
                 std::ptrdiff_t edge_sixth_id = upper_edge_curr_id;
                 upper_edge_curr_id++;
 
-                std::ptrdiff_t face_first_id =  lower_face_curr_id;
-                std::ptrdiff_t face_second_id = middle_face_curr_id - 1;
-                std::ptrdiff_t face_third_id = upper_face_curr_id;
-                upper_face_curr_id++;
-                std::ptrdiff_t face_fourth_id = middle_face_curr_id + 1;
-                middle_face_curr_id++;
-                std::ptrdiff_t face_fifth_id = upper_face_curr_id;
-                upper_face_curr_id++;
-                std::ptrdiff_t face_sixth_id = upper_face_curr_id;
+                // std::ptrdiff_t face_first_id =  lower_face_curr_id;
+                // std::ptrdiff_t face_second_id = middle_face_curr_id - 1;
+                // std::ptrdiff_t face_third_id = upper_face_curr_id;
+                // upper_face_curr_id++;
+                // std::ptrdiff_t face_fourth_id = middle_face_curr_id + 1;
+                // middle_face_curr_id++;
+                // std::ptrdiff_t face_fifth_id = upper_face_curr_id;
+                // upper_face_curr_id++;
+                // std::ptrdiff_t face_sixth_id = upper_face_curr_id;
                 faces[id] = new slitherlink_face{
                     .id = id,
                     .value = 0,
@@ -1471,14 +1499,15 @@ inline void faceLayer(std::ptrdiff_t layer_no,
                         edge_fifth_id,
                         edge_sixth_id
                     },
-                    .face_ids = {
-                        face_first_id,
-                        face_second_id,
-                        face_third_id,
-                        face_fourth_id,
-                        face_fifth_id,
-                        face_sixth_id
-                    },
+                    // .face_ids = {
+                    //     face_first_id,
+                    //     face_second_id,
+                    //     face_third_id,
+                    //     face_fourth_id,
+                    //     face_fifth_id,
+                    //     face_sixth_id
+                    // },
+                    .face_ids = {},
                     .edge_refs = {},
                     .face_refs = {},
                 };
@@ -1500,15 +1529,15 @@ inline void faceLayer(std::ptrdiff_t layer_no,
             std::ptrdiff_t edge_sixth_id = upper_edge_curr_id;
             upper_edge_curr_id++;
 
-            std::ptrdiff_t face_first_id =  lower_face_curr_id;
-            lower_face_curr_id++;
-            std::ptrdiff_t face_second_id = middle_face_curr_id - 1;
-            std::ptrdiff_t face_third_id = upper_face_curr_id;
-            upper_face_curr_id++;
-            std::ptrdiff_t face_fourth_id = lower_face_curr_id;
-            std::ptrdiff_t face_fifth_id = middle_face_curr_id + 1;
-            middle_face_curr_id++;
-            std::ptrdiff_t face_sixth_id = upper_face_curr_id;
+            // std::ptrdiff_t face_first_id =  lower_face_curr_id;
+            // lower_face_curr_id++;
+            // std::ptrdiff_t face_second_id = middle_face_curr_id - 1;
+            // std::ptrdiff_t face_third_id = upper_face_curr_id;
+            // upper_face_curr_id++;
+            // std::ptrdiff_t face_fourth_id = lower_face_curr_id;
+            // std::ptrdiff_t face_fifth_id = middle_face_curr_id + 1;
+            // middle_face_curr_id++;
+            // std::ptrdiff_t face_sixth_id = upper_face_curr_id;
             faces[id] = new slitherlink_face{
                 .id = id,
                 .value = 0,
@@ -1521,14 +1550,15 @@ inline void faceLayer(std::ptrdiff_t layer_no,
                     edge_fifth_id,
                     edge_sixth_id
                 },
-                .face_ids = {
-                    face_first_id,
-                    face_second_id,
-                    face_third_id,
-                    face_fourth_id,
-                    face_fifth_id,
-                    face_sixth_id
-                },
+                // .face_ids = {
+                //     face_first_id,
+                //     face_second_id,
+                //     face_third_id,
+                //     face_fourth_id,
+                //     face_fifth_id,
+                //     face_sixth_id
+                // },
+                .face_ids = {},
                 .edge_refs = {},
                 .face_refs = {},
             };
@@ -1541,11 +1571,13 @@ inline void faceLayer(std::ptrdiff_t layer_no,
         middle_edge_curr_id++;
         edge_third_id =  upper_edge_curr_id;
         upper_edge_curr_id++;
-        edge_fourth_id = lower_edge_curr_id;
-        lower_edge_curr_id++;
         if (layer_no == 1 || layer_no == 2) {
             edge_fourth_id = upper_edge_curr_id;
             upper_edge_curr_id++;
+        }
+        else {
+            edge_fourth_id = lower_edge_curr_id;
+            lower_edge_curr_id++;
         }
         edge_fifth_id = layer_no % 2 != 0 ?
                             getNoOfEdges(layer_no) :
@@ -1553,15 +1585,15 @@ inline void faceLayer(std::ptrdiff_t layer_no,
         edge_sixth_id = upper_edge_curr_id;
         upper_edge_curr_id++;
 
-        face_first_id =  lower_face_curr_id;
-        lower_face_curr_id++;
-        face_second_id = middle_face_curr_id - 1;
-        face_third_id = upper_face_curr_id;
-        upper_face_curr_id++;
-        face_fourth_id = lower_face_curr_id;
-        face_fifth_id = getNoOfFaces(layer_no);
-        middle_face_curr_id++;
-        face_sixth_id = upper_face_curr_id;
+        // face_first_id =  lower_face_curr_id;
+        // lower_face_curr_id++;
+        // face_second_id = middle_face_curr_id - 1;
+        // face_third_id = upper_face_curr_id;
+        // upper_face_curr_id++;
+        // face_fourth_id = lower_face_curr_id;
+        // face_fifth_id = getNoOfFaces(layer_no);
+        // middle_face_curr_id++;
+        // face_sixth_id = upper_face_curr_id;
         faces[id] = new slitherlink_face{
             .id = id,
             .value = 0,
@@ -1574,14 +1606,15 @@ inline void faceLayer(std::ptrdiff_t layer_no,
                 edge_fifth_id,
                 edge_sixth_id
             },
-            .face_ids = {
-                face_first_id,
-                face_second_id,
-                face_third_id,
-                face_fourth_id,
-                face_fifth_id,
-                face_sixth_id
-            },
+            // .face_ids = {
+            //     face_first_id,
+            //     face_second_id,
+            //     face_third_id,
+            //     face_fourth_id,
+            //     face_fifth_id,
+            //     face_sixth_id
+            // },
+            .face_ids = {},
             .edge_refs = {},
             .face_refs = {},
         };
